@@ -19,49 +19,15 @@ check:
     ruff check .
     ruff format --check .
     nixfmt --check flake.nix
+    shellcheck install.sh
     just test
     for d in skills/*/; do python3 skills/skill-writer/scripts/quick_validate.py "$d" || exit 1; done
+    ! grep -rnF --exclude=portability.md -e 'Skill tool' -e 'setup-matt-pocock-skills' -e '${CLAUDE_SKILL_DIR}' -e '$ARGUMENTS' skills/
 
-# Copy every skill to dir and skip a target that exists.
-install dir=(env("HOME") / ".agents/skills"):
-    #!/usr/bin/env bash
-    set -euo pipefail
-    mkdir -p "{{dir}}"
-    status=0
-    for src in skills/*/; do
-        name=$(basename "$src")
-        target="{{dir}}/$name"
-        if [ -e "$target" ] || [ -L "$target" ]; then
-            echo "skip: $target exists"
-            status=1
-            continue
-        fi
-        cp -R "$src" "$target"
-        echo "install: $target"
-    done
-    exit "$status"
+# Copy the skills, then add the vendor skills. Pass install.sh flags, for example `--dir DIR --no-vendor`.
+install *args:
+    ./install.sh --copy {{args}}
 
-# Link every skill into dir and skip a target that exists.
-link dir=(env("HOME") / ".agents/skills"):
-    #!/usr/bin/env bash
-    set -euo pipefail
-    mkdir -p "{{dir}}"
-    root=$(pwd)
-    status=0
-    for src in skills/*/; do
-        name=$(basename "$src")
-        absolute="$root/skills/$name"
-        target="{{dir}}/$name"
-        if [ -L "$target" ] && [ "$(readlink "$target")" = "$absolute" ]; then
-            echo "linked: $target"
-            continue
-        fi
-        if [ -e "$target" ] || [ -L "$target" ]; then
-            echo "skip: $target exists"
-            status=1
-            continue
-        fi
-        ln -s "$absolute" "$target"
-        echo "link: $target -> $absolute"
-    done
-    exit "$status"
+# Link the skills, then add the vendor skills. Pass install.sh flags, for example `--dir DIR --no-vendor`.
+link *args:
+    ./install.sh --link {{args}}

@@ -28,6 +28,7 @@
               pkgs.nodejs
               pkgs.ruff
               pkgs.nixfmt
+              pkgs.shellcheck
             ];
           };
         };
