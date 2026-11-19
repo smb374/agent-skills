@@ -47,7 +47,7 @@ The research brief `docs/research/writing-agent-docs.md` (repo root) holds the q
 | one inline STE rule, no runtime use of `asd-ste100` | a skill must stand alone | adopted |
 | Pi templates for briefs stay in the Pi `agent-handoff` skill | this repo holds portable skills only | adopted |
 | MCP server instructions | out of scope | rejected |
-| the trigger split with `asd-ste100` | see `docs/catalog.md` Open decisions | deferred |
+| the trigger split with `asd-ste100`: this skill writes whole agent documents, and `asd-ste100` rewrites given text | the `asd-ste100` description names this skill for whole documents | adopted |
 | the skill mechanics of [MP] (`SKILL-MECHANICS.md`) | `skill-writer` covers skills | rejected |
 
 ## Shared rules

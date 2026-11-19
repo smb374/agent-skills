@@ -46,7 +46,7 @@ This file is the list of skills that this repo installs or plans to install. It 
 
 | Group | Skill | Kind | Source | Status |
 | --- | --- | --- | --- | --- |
-| Writing and coding style | `asd-ste100` | knowledge | Own. Move it into this repo. | own |
+| Writing and coding style | `asd-ste100` | knowledge | danyuchn/asd-ste100-skill (MIT). Narrow the description: it rewrites given text, and `writing-agent-docs` writes whole agent documents. | done |
 | Writing and coding style | `ponytail` | knowledge | DietrichGebert/ponytail @ `96608e0` (MIT), with the Pi config changes | done |
 | Misc | `teach` | flow | mattpocock/skills | vendor |
 | Misc | `research` | knowledge | mattpocock/skills. Add a fallback for a harness with no subagent tool. | done |
@@ -72,7 +72,6 @@ ask-matt, code-review, feature-plan, find-skills, handoff, implement, implement-
 4. Keep `wait-what`?
 5. Skill-to-skill references. Sentry `design-principles.md` says "Do not require another skill by name at runtime." But `grill-me` and `grill-with-docs` exist only to start `grilling`. Options: refer by name and accept the coupling, use a sibling path, or merge the entry points into `grilling`.
 6. `plan-ticket-impl`: a separate skill, or a step in `implement-flow`? The Pi config repo decides this.
-7. Trigger split between `writing-agent-docs` and `asd-ste100`. Both descriptions trigger on system prompts and tool descriptions. Decide the split when `asd-ste100` moves into this repo.
 
 ## Install target
 

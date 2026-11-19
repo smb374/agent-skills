@@ -1,6 +1,7 @@
 ---
 name: asd-ste100
-description: "Use when English text must be parsed without a human to resolve ambiguity — tool descriptions, error messages, inter-agent instructions, system prompts, status reports — and misreading has a real cost, or when text reads as dense, hedged, or easy to misparse. Triggers: disambiguate, STE100 rewrite, apply Simplified Technical English, plain-language rewrite, controlled-language rewrite, rewrite so an agent cannot misread this. Not for creative or marketing copy."
+description: "Rewrites given English text into ASD-STE100 Simplified Technical English: one meaning per word, active voice, simple tenses, short sentences. Use when asked to disambiguate a text, to apply STE100 or Simplified Technical English, or to do a plain-language or controlled-language rewrite so that an agent cannot misread the text. To write, restructure, or prune a whole agent document (AGENTS.md, a system prompt, a tool description, an agent brief), use writing-agent-docs. Not for creative or marketing copy."
+license: MIT
 metadata:
   version: 0.4.0
 ---
