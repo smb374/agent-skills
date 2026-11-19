@@ -234,6 +234,13 @@ class EvalRunTest(unittest.TestCase):
         _, out, _ = self.main("--runs", "1")
         self.assertIn("| judged | 1/1 | 1/1 |", out)
 
+    def test_judge_verdict_with_python_quote_escape_is_read(self):
+        os.environ["FAKE_JUDGE"] = (
+            '{"pass": true, "reason": "the parameter \\\'s\\\' is clear"}'
+        )
+        _, out, _ = self.main("--runs", "1")
+        self.assertIn("| judged | 1/1 | 1/1 |", out)
+
     def test_pi_failure_is_reported_and_exits_1(self):
         os.environ["FAKE_PI_FAIL"] = "1"
         code, out, _ = self.main("--runs", "1")

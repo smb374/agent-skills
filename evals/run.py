@@ -215,7 +215,8 @@ def check_judge(check, workdir, env):
         workdir,
         env,
     )
-    text = reply(events)
+    # The judge sometimes escapes a quote as \' (Python style), which JSON rejects.
+    text = re.sub(r"(?<!\\)\\'", "'", reply(events))
     # Take the first JSON object; the judge may add text with braces after it.
     start = text.find("{")
     try:
