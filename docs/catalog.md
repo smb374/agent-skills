@@ -28,7 +28,7 @@ This file is the list of skills that this repo installs or plans to install. It 
 | --- | --- | --- | --- | --- | --- |
 | 0 Bootstrap | AGENTS.md, CONTRIBUTING.md, issue tracker, docs layout | `setup-project` (name TBD) | flow | Own. Reuse the tracker and label part of `setup-matt-pocock-skills`. | own |
 | 1 Intake | Epic to specs | `wayfinder` | flow | mattpocock/skills | vendor |
-| 1 Intake | Interview, used in every stage | `grilling` | knowledge | mattpocock/skills, with the Pi fork changes in harness-neutral words | fork |
+| 1 Intake | Interview, used in every stage | `grilling` | knowledge | mattpocock/skills, with the Pi fork changes in harness-neutral words | done |
 | 1 Intake | Interview entry points | `grill-me`, `grill-with-docs` | flow | mattpocock/skills | vendor |
 | 1 Intake | Glossary and ADRs | `domain-modeling` | knowledge | mattpocock/skills | vendor |
 | 1 Intake | Spec, then tickets | `to-spec`, `to-tickets` | flow | mattpocock/skills | vendor |
