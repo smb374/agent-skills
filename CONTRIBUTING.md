@@ -45,7 +45,7 @@ Use two commits, so that `git diff` of the second commit shows only your changes
 - ruff, nixfmt, or shellcheck reports a problem.
 - A test fails.
 - `quick_validate.py` finds an error in a skill. For example, `name` is not equal to the directory name, or `description` is longer than 1,024 characters. Pi skips a skill with bad frontmatter and gives no message.
-- A file in `skills/` contains `Skill tool`, `setup-matt-pocock-skills`, `${CLAUDE_SKILL_DIR}`, or `$ARGUMENTS`. These work in one harness only. `skill-writer/references/portability.md` is exempt, because it describes them.
+- A file in `skills/` contains `Skill tool`, `setup-matt-pocock-skills`, `${CLAUDE_SKILL_DIR}`, or `$ARGUMENTS`. These work in one harness only. `skill-writer/references/portability.md` is exempt, because it describes them. Each `PROVENANCE.md` is exempt, because it names the upstream source.
 
 ## Commits
 

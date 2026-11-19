@@ -25,7 +25,7 @@ check:
     shellcheck install.sh
     just test
     for d in skills/*/; do python3 skills/skill-writer/scripts/quick_validate.py "$d" || exit 1; done
-    ! grep -rnF --exclude=portability.md -e 'Skill tool' -e 'setup-matt-pocock-skills' -e '${CLAUDE_SKILL_DIR}' -e '$ARGUMENTS' skills/
+    ! grep -rnF --exclude=portability.md --exclude=PROVENANCE.md -e 'Skill tool' -e 'setup-matt-pocock-skills' -e '${CLAUDE_SKILL_DIR}' -e '$ARGUMENTS' skills/
 
 # Copy the skills, then add the vendor skills. Pass install.sh flags, for example `--dir DIR --no-vendor`.
 install *args:
