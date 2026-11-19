@@ -47,7 +47,7 @@ This file is the list of skills that this repo installs or plans to install. It 
 | Group | Skill | Kind | Source | Status |
 | --- | --- | --- | --- | --- |
 | Writing and coding style | `asd-ste100` | knowledge | Own. Move it into this repo. | own |
-| Writing and coding style | `ponytail` | knowledge | DietrichGebert/ponytail @ `96608e0` (MIT), with the Pi config changes | fork |
+| Writing and coding style | `ponytail` | knowledge | DietrichGebert/ponytail @ `96608e0` (MIT), with the Pi config changes | done |
 | Misc | `teach` | flow | mattpocock/skills | vendor |
 | Misc | `research` | knowledge | mattpocock/skills. Add a fallback for a harness with no subagent tool. | done |
 | Misc | `wait-what` | flow | mattpocock/skills | undecided |
