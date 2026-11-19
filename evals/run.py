@@ -115,7 +115,8 @@ def usage(events):
     total = {"input": 0, "output": 0, "cost": 0.0}
     for message in assistant_messages(events):
         u = message.get("usage") or {}
-        total["input"] += u.get("input", 0)
+        # Anthropic reports cached prompt tokens apart from "input".
+        total["input"] += sum(u.get(k, 0) for k in ("input", "cacheRead", "cacheWrite"))
         total["output"] += u.get("output", 0)
         total["cost"] += (u.get("cost") or {}).get("total", 0)
     return total
@@ -181,7 +182,15 @@ def check_judge(check, workdir, env):
         question=check["question"], files=judge_files(check, workdir)
     )
     _, events = pi(
-        ["--model", env["EVAL_JUDGE_MODEL"], "--no-tools", "--no-skills", prompt],
+        [
+            "--model",
+            env["EVAL_JUDGE_MODEL"],
+            "--thinking",
+            "low",
+            "--no-tools",
+            "--no-skills",
+            prompt,
+        ],
         workdir,
         env,
     )
@@ -217,11 +226,12 @@ def run_one(skill, case, arm, n, out, env):
         "error": None,
     }
     # The workdir and the agent dir live outside the repo, so pi finds no project config.
+    # The agent dir holds only the committed eval settings, so device settings cannot leak in.
     with tempfile.TemporaryDirectory() as tmp:
         workdir = Path(tmp) / "work"
         agent_dir = Path(tmp) / "agent"
         shutil.copytree(ROOT / "evals" / skill / case["fixture"], workdir)
-        agent_dir.mkdir()
+        shutil.copytree(ROOT / "evals" / "pi-agent", agent_dir)
         run_env = {**env, "PI_CODING_AGENT_DIR": str(agent_dir)}
         tools = TOOLS + (",bash" if case.get("bash") else "")
         arm_args = (

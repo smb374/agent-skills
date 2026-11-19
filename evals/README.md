@@ -16,7 +16,7 @@ The command exits 0 when the suite ran, 1 when a pi call failed, and 2 when a se
 ## What one run does
 
 1. Copy the fixture to a temp directory outside the repo.
-2. Set `PI_CODING_AGENT_DIR` to an empty temp directory, so no user skill, instructions file, extension, or setting applies.
+2. Set `PI_CODING_AGENT_DIR` to a temp copy of `evals/pi-agent/`, so no user skill, instructions file, extension, or setting applies. Its `settings.json` pins the agent thinking level (`medium`). Judge calls use `--thinking low`.
 3. Run `pi --mode json --no-session -nc -ne --no-mcp --model $EVAL_MODEL --tools read,edit,write,grep,find,ls`, with `--no-skills` (arm `baseline`) or `--skill skills/<skill>` (arm `skill`).
 4. Apply each check to the temp directory.
 5. Save `events.jsonl` and the final `workdir/` under `evals/results/` (gitignored).

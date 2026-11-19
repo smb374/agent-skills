@@ -3,6 +3,7 @@
 import importlib.util
 import json
 import os
+import shutil
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -13,13 +14,17 @@ ROOT = Path(__file__).resolve().parent.parent
 spec = importlib.util.spec_from_file_location("eval_run", ROOT / "evals" / "run.py")
 run = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(run)
+PI_SETTINGS = (ROOT / "evals" / "pi-agent" / "settings.json").read_text()
 
 # The agent writes out.txt, which shows the arm. The judge (--no-tools) prints FAKE_JUDGE.
 FAKE_PI = r"""#!/usr/bin/env python3
 import json, os, sys
 args = sys.argv[1:]
 with open(os.environ["FAKE_PI_LOG"], "a") as f:
-    f.write(json.dumps({"args": args, "agent_dir": os.environ.get("PI_CODING_AGENT_DIR")}) + "\n")
+    agent_dir = os.environ.get("PI_CODING_AGENT_DIR")
+    settings = os.path.join(agent_dir, "settings.json")
+    settings = open(settings).read() if os.path.isfile(settings) else None
+    f.write(json.dumps({"args": args, "agent_dir": agent_dir, "settings": settings}) + "\n")
 if os.environ.get("FAKE_PI_FAIL"):
     print("boom", file=sys.stderr)
     sys.exit(3)
@@ -29,7 +34,8 @@ else:
     with open("out.txt", "w") as f:
         f.write("skill" if "--skill" in args else "baseline")
     text = "done\u2028next line"
-usage = {"input": 10, "output": 5, "cost": {"total": 0.001}}
+# Like Anthropic, most prompt tokens arrive as cache reads and writes: 4 + 5 + 1 = 10.
+usage = {"input": 4, "cacheRead": 5, "cacheWrite": 1, "output": 5, "cost": {"total": 0.001}}
 msg = {"role": "assistant", "content": [{"type": "text", "text": text}], "usage": usage}
 print(json.dumps({"type": "session"}))
 print(json.dumps({"type": "message_end", "message": msg}, ensure_ascii=False))
@@ -92,6 +98,7 @@ class EvalRunTest(unittest.TestCase):
         os.environ.update(env)
         self.addCleanup(self.restore_env)
         self.saved_root = run.ROOT
+        shutil.copytree(ROOT / "evals" / "pi-agent", self.root / "evals" / "pi-agent")
         run.ROOT = self.root
         self.addCleanup(setattr, run, "ROOT", self.saved_root)
 
@@ -152,6 +159,7 @@ class EvalRunTest(unittest.TestCase):
             )
             self.assertEqual(args[args.index("--model") + 1], "fake/model")
             self.assertNotIn(str(Path.home()), call["agent_dir"])
+            self.assertEqual(call["settings"], PI_SETTINGS)
         skill_args = [c["args"] for c in agent_calls if "--skill" in c["args"]]
         self.assertEqual(
             skill_args[0][skill_args[0].index("--skill") + 1],
@@ -168,6 +176,11 @@ class EvalRunTest(unittest.TestCase):
             all(a[a.index("--model") + 1] == "fake/judge" for a in judge_calls)
         )
         self.assertIn("=== out.txt", judge_calls[0][-1])
+        self.assertTrue(all(a[a.index("--thinking") + 1] == "low" for a in judge_calls))
+
+    def test_pi_settings_pin_the_thinking_level(self):
+        settings = json.loads(PI_SETTINGS)
+        self.assertEqual(settings["defaultThinkingLevel"], "medium")
 
     def test_bash_toggle_adds_bash(self):
         self.write_cases(
