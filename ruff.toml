@@ -1,0 +1,2 @@
+# Agents write files such as pyproject.toml into eval results; ruff must not read them.
+extend-exclude = ["evals/results"]
