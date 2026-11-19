@@ -1,0 +1,52 @@
+[
+  {
+    "id": "agents-md",
+    "fixture": "fixtures/agents-md",
+    "prompt": "Our AGENTS.md has grown messy, and agents keep ignoring parts of it. Shorten and improve it. You may change or add other repo files when that is the right fix. Edit the files in place. When you finish, list each change and why.",
+    "checks": [
+      {"id": "no-system-prompt-claim", "type": "file_not_matches", "path": "AGENTS.md", "pattern": "(?i)system prompt"},
+      {"id": "no-no-op-lines", "type": "file_not_matches", "path": "AGENTS.md", "pattern": "(?i)clean, idiomatic|be thorough|double-check"},
+      {"id": "no-pip-install", "type": "file_not_matches", "path": "AGENTS.md", "pattern": "pip install"},
+      {"id": "no-shouting", "type": "file_not_matches", "path": "AGENTS.md", "pattern": "\\b(IMPORTANT|MUST|ALWAYS|NEVER|CRITICAL)\\b"},
+      {"id": "runbook-moved", "type": "file_not_matches", "path": "AGENTS.md", "pattern": "flyctl"},
+      {"id": "runbook-kept", "type": "command", "run": "grep -rqF 'flyctl releases rollback' --include='*.md' ."},
+      {"id": "redis-fact-kept", "type": "command", "run": "grep -rqi 'redis' --include='AGENTS.md' ."},
+      {"id": "short", "type": "command", "run": "test \"$(wc -l < AGENTS.md)\" -le 25"},
+      {"id": "no-restated-commands", "type": "judge", "paths": ["AGENTS.md", "justfile"], "question": "Does AGENTS.md avoid restating the commands that the justfile already defines (test, lint, typecheck, fmt)? A short pointer such as 'use the just recipes' passes. A list of the uv commands fails."},
+      {"id": "python-versions-agree", "type": "judge", "question": "Do all the AGENTS.md files agree on the Python version? Fail when one file says that all code targets one version and another file needs a newer version."},
+      {"id": "format-enforced", "type": "judge", "question": "Is the rule 'format each touched file with ruff' enforced by a tool (for example a pre-commit config, a check recipe, or a hook) instead of only a prose instruction in AGENTS.md? Pass when a tool enforces it, or when AGENTS.md has no format rule and a tool config enforces it."},
+      {"id": "bans-have-alternatives", "type": "judge", "paths": ["AGENTS.md"], "question": "For each coding ban in AGENTS.md (print for logging, bare except, mutable default arguments), does the file name the allowed alternative? Pass when each remaining ban has its alternative, or the bans moved to a lint config."}
+    ]
+  },
+  {
+    "id": "brief",
+    "fixture": "fixtures/brief",
+    "prompt": "The /reports endpoint of our app got slow, and I want to hand the investigation to a subagent. Facts: the repo is /srv/ledger. The p95 latency of GET /reports went from 300 ms to 4 s after the deploy on 2026-11-10. PR #873 in that deploy changed the report query to join the transactions table. The transactions table has 40 million rows. Grafana dashboard 'ledger-api' shows the slow requests. The staging database has a copy of production data from 2026-11-01. I want the cause found, not fixed yet. Write the brief that you would send to the subagent, and save it to brief.md. Do not dispatch it.",
+    "checks": [
+      {"id": "brief-exists", "type": "file_exists", "path": "brief.md"},
+      {"id": "facts-carried", "type": "command", "run": "grep -q '873' brief.md && grep -qi '40 million\\|40M\\|40,000,000' brief.md && grep -q 'staging' brief.md"},
+      {"id": "goal-and-why", "type": "judge", "paths": ["brief.md"], "question": "Does the brief state the goal and why the caller needs it (the purpose the result serves)?"},
+      {"id": "read-only-scope", "type": "judge", "paths": ["brief.md"], "question": "Does the brief name what is in scope, and say clearly that the subagent must not change code or production data?"},
+      {"id": "done-checkable", "type": "judge", "paths": ["brief.md"], "question": "Does the brief give a completion criterion that a reader can check, such as 'one root cause with evidence X, or a list of ruled-out causes'? A vague 'investigate' fails."},
+      {"id": "stop-hand-back", "type": "judge", "paths": ["brief.md"], "question": "Does the brief name a condition under which the subagent stops and hands back to the caller, for example when it needs production access or credentials?"},
+      {"id": "missing-facts-policy", "type": "judge", "paths": ["brief.md"], "question": "Does the brief tell the subagent what to do when a fact is missing: either assume and record the assumption, or stop and report the open question?"},
+      {"id": "report-shape", "type": "judge", "paths": ["brief.md"], "question": "Does the brief define the shape of the report: its sections or fields, and a length limit?"}
+    ]
+  },
+  {
+    "id": "tool",
+    "fixture": "fixtures/tool",
+    "prompt": "This directory has a tool definition file (tools.json), a hook script (guard-push.sh), and notes for humans (README.md). Agents misuse run_sql: they call it to look up table columns, and they run huge queries with no limit. Agents also force-push to main even though the hook exists. Fix the tool definition and the hook so that agents behave well. Edit the files in place. When you finish, list each change and why.",
+    "checks": [
+      {"id": "tools-json-valid", "type": "command", "run": "python3 -m json.tool tools.json > /dev/null"},
+      {"id": "near-miss-tool", "type": "judge", "paths": ["tools.json"], "question": "Does the run_sql description tell the agent to use describe_table to look up columns or schema?"},
+      {"id": "row-cap-and-narrowing", "type": "judge", "paths": ["tools.json"], "question": "Does the run_sql description state the 200-row cap, and tell the agent how to keep a query small (for example a WHERE or a LIMIT on large tables)?"},
+      {"id": "params-described", "type": "judge", "paths": ["tools.json"], "question": "Does each parameter of run_sql have a clear name or a description that states its meaning and its allowed values (db is replica or analytics)?"},
+      {"id": "blocks-force-main", "type": "command", "run": "echo '{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"git push --force origin main\"}}' | bash guard-push.sh 2>/dev/null", "exit": 2},
+      {"id": "blocks-f-main", "type": "command", "run": "echo '{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"git push -f origin main\"}}' | bash guard-push.sh 2>/dev/null", "exit": 2},
+      {"id": "allows-lease-feature", "type": "command", "run": "echo '{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"git push --force-with-lease origin feature/x\"}}' | bash guard-push.sh", "exit": 0},
+      {"id": "allows-plain-push", "type": "command", "run": "echo '{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"git push origin main\"}}' | bash guard-push.sh", "exit": 0},
+      {"id": "message-names-next-action", "type": "command", "run": "echo '{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"git push --force origin main\"}}' | bash guard-push.sh 2>&1 >/dev/null | grep -qiE 'force-with-lease|feature branch|ask the user'", "exit": 0}
+    ]
+  }
+]

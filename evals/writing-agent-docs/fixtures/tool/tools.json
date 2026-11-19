@@ -1,0 +1,25 @@
+[
+  {
+    "name": "run_sql",
+    "description": "Runs SQL.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "s": { "type": "string" },
+        "db": { "type": "string" }
+      },
+      "required": ["s"]
+    }
+  },
+  {
+    "name": "describe_table",
+    "description": "Returns the columns, types, and indexes of one table.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "table": { "type": "string", "description": "Table name, such as orders." }
+      },
+      "required": ["table"]
+    }
+  }
+]
