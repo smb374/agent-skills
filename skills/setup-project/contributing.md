@@ -15,7 +15,7 @@ Name a branch `<type>/<issue>-<slug>`, for example `feat/123-add-login`. `<type>
 
 ## Git hooks
 
-[pre-commit](https://pre-commit.com/) checks the commit header and the issue footer. Install pre-commit, then run this command once in each clone:
+[pre-commit](https://pre-commit.com/) scans the staged changes for secrets and checks the commit header and the issue footer. Install pre-commit, then run this command once in each clone:
 
 ```bash
 pre-commit install

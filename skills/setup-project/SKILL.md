@@ -1,6 +1,6 @@
 ---
 name: setup-project
-description: "Set up a repo for the engineering skills and for issue-linked commits: the issue tracker, the issue types, the triage and wayfinder labels, the domain doc layout, AGENTS.md, CONTRIBUTING.md, and pre-commit hooks that check the commit header and the issue footer. Run once per repo, before the first use of the other engineering skills."
+description: "Set up a repo for the engineering skills and for issue-linked commits: the issue tracker, the issue types, the triage and wayfinder labels, the domain doc layout, AGENTS.md, CONTRIBUTING.md, and pre-commit hooks that scan for secrets and check the commit header and the issue footer. Run once per repo, before the first use of the other engineering skills."
 license: MIT
 disable-model-invocation: true
 ---
@@ -14,7 +14,7 @@ Scaffold the per-repo configuration that the engineering skills assume, and the 
 - **Triage labels**: the strings used for the five canonical triage roles, and the labels in the tracker
 - **Domain docs**: where `GLOSSARY.md` and ADRs live, and the consumer rules for reading them
 - **AGENTS.md**: the project commands and the `## Agent skills` block
-- **CONTRIBUTING.md and git hooks**: Conventional Commits, the issue footer, the branch name, and a pre-commit config that checks them
+- **CONTRIBUTING.md and git hooks**: Conventional Commits, the issue footer, the branch name, and a pre-commit config that checks them and scans for secrets
 
 This is a prompt-driven skill, not a deterministic script. Explore, present what you found, confirm with the user, then write.
 
@@ -156,7 +156,7 @@ gh label create <label> --color <color> --description "<description>"
 
 **CONTRIBUTING.md:** add the sections of [contributing.md](./contributing.md). When `CONTRIBUTING.md` exists, update its matching sections in place, and keep the other sections.
 
-**pre-commit:** copy the hooks of [pre-commit-config.yaml](./pre-commit-config.yaml) into `.pre-commit-config.yaml`. When the file exists, add the two hooks and the `commit-msg` hook type, and keep the other hooks. Then run:
+**pre-commit:** copy the hooks of [pre-commit-config.yaml](./pre-commit-config.yaml) into `.pre-commit-config.yaml`. When the file exists, add the three hooks and the `commit-msg` hook type, and keep the other hooks. Then run:
 
 ```bash
 pre-commit install

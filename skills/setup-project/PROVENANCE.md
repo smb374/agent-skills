@@ -16,6 +16,7 @@
 | mattpocock/skills `docs/engineering/setup-matt-pocock-skills.md` @ 5863806 | documentation | primary | 2026-11-19 | the known gaps: the `CLAUDE.md` choice, and no `wayfinder:*` labels | MIT |
 | https://pre-commit.com/ (pre-commit 4.6.2 installed) | documentation | primary | 2026-11-19 | `pygrep` with `--multiline --negate`, `default_install_hook_types`, `commit-msg` stage, `core.hooksPath` refusal | none recorded |
 | compilerla/conventional-pre-commit v4.5.0 | code | primary | 2026-11-19 | the commit header hook | none recorded |
+| gitleaks/gitleaks v8.30.1 `.pre-commit-hooks.yaml`; the hook files of trufflesecurity/trufflehog v3.99.9, Yelp/detect-secrets v1.5.0, and thoughtworks/talisman v1.37.0 | code | primary | 2026-11-19 | the secret scan hook, and the compared options | none recorded |
 | grilling session with the user | note | primary | 2026-11-19 | every decision below that cites the user | none recorded |
 | smb374/otnes `docs/agents/issue-types.md`, `docs/agents/triage-labels.md`, `AGENTS.md`, and `gh label list` | code | primary | 2026-11-19 | the issue types, the title prefixes, the hierarchy, the category table, and the label colors and descriptions | the user's own repo |
 
@@ -34,6 +35,8 @@
 | no footer needed for `docs`, `chore`, `ci`, `build`, `style`, `revert`, git `Merge`, and `fixup!`/`squash!`/`amend!` | the user's choice. `revert` replaces git's `Revert "..."`, which `conventional-pre-commit` rejects | adopted |
 | stop and ask on husky, lefthook, commitlint, or `core.hooksPath` | the user's choice. `pre-commit install` refuses to run with `core.hooksPath` | adopted |
 | ask the user to install pre-commit when it is not on the `PATH` | the user's choice | adopted |
+| scan staged changes for secrets with the `gitleaks` hook | the user's choice. It scans only the staged diff, works offline, and needs no baseline file | adopted |
+| TruffleHog, detect-secrets, and Talisman as the secret scan | TruffleHog calls provider APIs and fails only on verified secrets. detect-secrets needs a `.secrets.baseline` file. Talisman ignores files by checksum in `.talismanrc`, so each change to an ignored file needs a new entry | rejected |
 | remove the `/improve-codebase-architecture` mention from `domain.md` | the catalog does not keep that skill | adopted |
 | add the otnes issue types: `type:*` labels, title prefixes, hierarchy, and `[WF]` for Wayfinder children | the user's choice, from smb374/otnes | adopted |
 | make the otnes-only text general: the `type:bug` meaning, the `type:ticket` description, and "Not a Bug" | otnes names test ROMs, `/implement`, and `just verify` | adopted |
@@ -59,3 +62,4 @@
 - Remove the `/improve-codebase-architecture` mention from `domain.md`.
 - Add the `issue-types.md` template and the `### Issue types` sub-block. Map the `bug` and `enhancement` categories to `type:bug` and `type:feature` in `triage-labels.md`. Set the title prefix and the `type:*` label in `issue-tracker-github.md`, and `[WF]` for Wayfinder children.
 - Create the `type:*`, triage, and `wayfinder:*` labels with a color and a description.
+- Add the `gitleaks` secret scan hook to `pre-commit-config.yaml`.
