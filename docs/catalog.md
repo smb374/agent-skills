@@ -63,8 +63,11 @@ ask-matt, code-review, feature-plan, find-skills, handoff, implement, implement-
 
 ## Open decisions
 
-1. Skill-to-skill references. Sentry `design-principles.md` says "Do not require another skill by name at runtime." But `grill-me` and `grill-with-docs` exist only to start `grilling`. Options: refer by name and accept the coupling, use a sibling path, or merge the entry points into `grilling`.
-2. `plan-ticket-impl`: a separate skill, or a step in `implement-flow`? The Pi config repo decides this.
+1. `plan-ticket-impl`: a separate skill, or a step in `implement-flow`? The Pi config repo decides this.
+
+## Resolved decisions
+
+1. Skill-to-skill references. Sentry `design-principles.md` says "Do not require another skill by name at runtime." Decision: refer by name and accept the coupling. The forks `wayfinder`, `to-spec`, `to-tickets`, and `triage` tell the user to run `/setup-project`, a setup workflow, not knowledge. The vendored `grill-me`, `grill-with-docs`, and `tdd` keep "call the Skill tool", because they work in Pi as intended.
 
 ## Install target
 
