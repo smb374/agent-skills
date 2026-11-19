@@ -50,7 +50,7 @@ This file is the list of skills that this repo installs or plans to install. It 
 | Writing and coding style | `ponytail` | knowledge | DietrichGebert/ponytail @ `96608e0` (MIT), with the Pi config changes | done |
 | Misc | `teach` | flow | mattpocock/skills | vendor |
 | Misc | `research` | knowledge | mattpocock/skills. Add a fallback for a harness with no subagent tool. | done |
-| Misc | `wait-what` | flow | mattpocock/skills | undecided |
+| Misc | `wait-what` | flow | mattpocock/skills | vendor |
 
 ## Not kept
 
@@ -69,9 +69,8 @@ ask-matt, code-review, feature-plan, find-skills, handoff, implement, implement-
    - Fork the four skills, and change the message to name `setup-project`.
    - Keep `setup-matt-pocock-skills` as a vendor skill until `setup-project` exists.
 3. Branch to tickets: should `setup-project` enforce a `Refs: #N` commit footer with a hook or commitlint, or only write a CONTRIBUTING.md convention?
-4. Keep `wait-what`?
-5. Skill-to-skill references. Sentry `design-principles.md` says "Do not require another skill by name at runtime." But `grill-me` and `grill-with-docs` exist only to start `grilling`. Options: refer by name and accept the coupling, use a sibling path, or merge the entry points into `grilling`.
-6. `plan-ticket-impl`: a separate skill, or a step in `implement-flow`? The Pi config repo decides this.
+4. Skill-to-skill references. Sentry `design-principles.md` says "Do not require another skill by name at runtime." But `grill-me` and `grill-with-docs` exist only to start `grilling`. Options: refer by name and accept the coupling, use a sibling path, or merge the entry points into `grilling`.
+5. `plan-ticket-impl`: a separate skill, or a step in `implement-flow`? The Pi config repo decides this.
 
 ## Install target
 

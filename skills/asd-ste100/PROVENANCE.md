@@ -19,7 +19,7 @@
 | Decision | Evidence | Status |
 | --- | --- | --- |
 | fork `danyuchn/asd-ste100-skill`, not `0xpili/simplified-technical-english` or a new skill | it is the skill that the user used before, and it has a lint script | adopted |
-| the description: rewrite given text. Send whole agent documents to `writing-agent-docs` | both descriptions named system prompts and tool descriptions (`docs/catalog.md` open decision 7) | adopted |
+| the description: rewrite given text. Send whole agent documents to `writing-agent-docs` | both descriptions named system prompts and tool descriptions. This was an open decision in `docs/catalog.md` | adopted |
 | `README.md` and `.claude-plugin/` | repository files, not part of the skill | rejected |
 | reformat `scripts/ste-lint.py` with `ruff format` | `just check` runs `ruff format --check` on every Python file. The user chose a reformat over an exclude | adopted |
 

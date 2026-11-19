@@ -1,4 +1,4 @@
 # Upstream skills that install.sh adds unchanged with `npx skills add`.
 # Format: <repo> <skill> [skill ...]. A skill with local changes goes in skills/ instead.
 # Keep each list in sync with docs/catalog.md.
-mattpocock/skills wayfinder grill-me grill-with-docs domain-modeling to-spec to-tickets tdd diagnosing-bugs codebase-design triage teach
+mattpocock/skills wayfinder grill-me grill-with-docs domain-modeling to-spec to-tickets tdd diagnosing-bugs codebase-design triage teach wait-what
