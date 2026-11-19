@@ -1,8 +1,7 @@
 ---
 name: pr-writer
-description: Create or refresh reviewer-facing PR titles and descriptions. Use when opening a PR, updating its title or body, or preparing branch changes for review.
+description: Create or refresh reviewer-facing PR titles and descriptions. Use when the user asks to open a PR or to update its title or body, or when another workflow calls it to open or refresh a PR. Do not start it on your own after a commit or a push.
 license: Apache-2.0
-disable-model-invocation: true
 ---
 
 <!-- Derived from getsentry/skills skills/pr-writer @ a582c51 (Apache-2.0); modified. -->
@@ -36,6 +35,31 @@ git diff "$BASE"...HEAD
 If on `main` or `master`, create a feature branch first. Ensure intended
 changes are committed and review the whole branch diff, not only the latest
 commit or existing PR text.
+
+## Find the Target Issue
+
+Find the issue that the PR works for. Look in this order, and stop at the
+first issue that you find:
+
+1. The user input.
+2. The body of the existing PR (`Fixes #N`, `Refs #N`).
+3. The branch name, for example `123-add-login` or `feat/123-login`.
+4. The commit messages in `"$BASE"..HEAD` (`Fixes #N`, `Refs: #N`).
+
+When you find the issue, read it and its sub-issues:
+
+```bash
+gh issue view N --json number,title,body,state
+gh api repos/{owner}/{repo}/issues/N/sub_issues --jq '.[] | {number, title, state}'
+```
+
+Use them to explain why the change exists. Reference only the sub-issues that
+the diff closes or changes.
+
+When you find no issue, ask the user for the issue number. When the user has
+no issue, or when another workflow started this skill and you cannot ask, use
+the commit list of `git log "$BASE"..HEAD` as the context, and write no issue
+reference.
 
 ## Core Rules
 
