@@ -27,18 +27,18 @@ This file is the list of skills that this repo installs or plans to install. It 
 | Stage | Step | Skill | Kind | Source | Status |
 | --- | --- | --- | --- | --- | --- |
 | 0 Bootstrap | AGENTS.md, CONTRIBUTING.md, issue tracker, labels, docs layout, commit hooks | `setup-project` | flow | mattpocock/skills `setup-matt-pocock-skills` (MIT). GitHub or "other" tracker only. Add AGENTS.md, CONTRIBUTING.md, GitHub labels, and pre-commit hooks for the commit header and the issue footer. | done |
-| 1 Intake | Epic to specs | `wayfinder` | flow | mattpocock/skills | vendor |
+| 1 Intake | Epic to specs | `wayfinder` | flow | mattpocock/skills. Point it at `setup-project`. Load skills by name, not with the Skill tool. | done |
 | 1 Intake | Interview, used in every stage | `grilling` | knowledge | mattpocock/skills, with the Pi fork changes in harness-neutral words | done |
 | 1 Intake | Interview entry points | `grill-me`, `grill-with-docs` | flow | mattpocock/skills | vendor |
 | 1 Intake | Glossary and ADRs | `domain-modeling` | knowledge | mattpocock/skills | vendor |
-| 1 Intake | Spec, then tickets | `to-spec`, `to-tickets` | flow | mattpocock/skills | vendor |
+| 1 Intake | Spec, then tickets | `to-spec`, `to-tickets` | flow | mattpocock/skills. Point them at `setup-project`. | done |
 | 2 Tickets | Scout, brief, worker, verify, review, commit | `implement-flow`, `implement-spec-flow`, `plan-ticket-impl`, `agent-handoff` | flow | Pi config repo | pi-config |
 | 2 Tickets | Code writing | `tdd`, `diagnosing-bugs`, `codebase-design` | knowledge | mattpocock/skills | vendor |
 | 3 PR | Find the target issue and its sub-issues. Else ask the user, or use the branch commits | A step in `pr-writer`, with `gh` commands | — | Own | done |
 | 3 PR | PR body | `pr-writer` | knowledge, started by the user or another flow | getsentry/skills (Apache-2.0). Change it to Conventional Commits titles. | done |
 | 3 PR | PR operations | No skill. The model already knows `gh`. | — | — | none |
 | 3 PR | PR review | `pr-review` | flow | Pi config repo | pi-config |
-| 4 Issues | Triage, then tickets, then stage 2 | `triage`, then `to-tickets` | flow | mattpocock/skills | vendor |
+| 4 Issues | Triage, then tickets, then stage 2 | `triage`, then `to-tickets` | flow | mattpocock/skills. Point `triage` at `setup-project`. Load skills by name, not with the Skill tool. | done |
 | Meta | Skill authoring | `skill-writer` | knowledge | getsentry/skills (Apache-2.0), with the public supplement | done |
 | Meta | AGENTS.md, CLAUDE.md, disclosed docs, agent briefs, system prompts, tool descriptions, error and hook messages | `writing-agent-docs` | knowledge | mattpocock/skills `writing-for-agents` (MIT), rewritten and extended with vendor research. `skill-writer` sends these requests to it. | done |
 
@@ -65,8 +65,6 @@ ask-matt, code-review, feature-plan, find-skills, handoff, implement, implement-
 
 1. Skill-to-skill references. Sentry `design-principles.md` says "Do not require another skill by name at runtime." But `grill-me` and `grill-with-docs` exist only to start `grilling`. Options: refer by name and accept the coupling, use a sibling path, or merge the entry points into `grilling`.
 2. `plan-ticket-impl`: a separate skill, or a step in `implement-flow`? The Pi config repo decides this.
-
-`wayfinder`, `to-spec`, `to-tickets`, and `triage` still tell the user to run `/setup-matt-pocock-skills` when a repo has no tracker config. Run `setup-project` instead. It writes the same `docs/agents/` files, so the message does not show after setup.
 
 ## Install target
 
