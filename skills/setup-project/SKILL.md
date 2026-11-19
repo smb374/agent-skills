@@ -1,6 +1,6 @@
 ---
 name: setup-project
-description: "Set up a repo for the engineering skills and for issue-linked commits: the issue tracker, the triage and wayfinder labels, the domain doc layout, AGENTS.md, CONTRIBUTING.md, and pre-commit hooks that check the commit header and the issue footer. Run once per repo, before the first use of the other engineering skills."
+description: "Set up a repo for the engineering skills and for issue-linked commits: the issue tracker, the issue types, the triage and wayfinder labels, the domain doc layout, AGENTS.md, CONTRIBUTING.md, and pre-commit hooks that check the commit header and the issue footer. Run once per repo, before the first use of the other engineering skills."
 license: MIT
 disable-model-invocation: true
 ---
@@ -10,6 +10,7 @@ disable-model-invocation: true
 Scaffold the per-repo configuration that the engineering skills assume, and the commit rules that link the work to its issues:
 
 - **Issue tracker**: where issues live (GitHub by default, or a workflow that the user describes)
+- **Issue types**: the `type:*` label and the title prefix of each issue, and the Epic, Feature, Task, and Ticket hierarchy
 - **Triage labels**: the strings used for the five canonical triage roles, and the labels in the tracker
 - **Domain docs**: where `GLOSSARY.md` and ADRs live, and the consumer rules for reading them
 - **AGENTS.md**: the project commands and the `## Agent skills` block
@@ -77,7 +78,7 @@ Offer **multi-context** (a root `GLOSSARY-MAP.md` pointing to per-context `GLOSS
 Show the user a draft of:
 
 - The `AGENTS.md` changes (see step 4)
-- The contents of `docs/agents/issue-tracker.md`, `docs/agents/domain.md`, and `docs/agents/triage-labels.md` (the last only when `triage` is installed)
+- The contents of `docs/agents/issue-tracker.md`, `docs/agents/issue-types.md`, `docs/agents/domain.md`, and `docs/agents/triage-labels.md` (the last only when `triage` is installed)
 - The `CONTRIBUTING.md` sections and the `.pre-commit-config.yaml` hooks
 
 Let them edit before writing.
@@ -101,6 +102,10 @@ The block:
 
 [one-line summary of where issues are tracked]. See `docs/agents/issue-tracker.md`.
 
+### Issue types
+
+Each issue has one `type:*` label and a matching title prefix: `[Epic]`, `[Bug]`, `[Feature]`, `[Task]`, `[Ticket]`. Wayfinder child issues have no `type:*` label and use `[WF]`. See `docs/agents/issue-types.md`.
+
 ### Triage labels
 
 [one-line summary of the label vocabulary]. See `docs/agents/triage-labels.md`.
@@ -119,18 +124,34 @@ Include the `### Triage labels` sub-block, and write `docs/agents/triage-labels.
 **Docs files:** write them from the seed templates in this skill folder:
 
 - [issue-tracker-github.md](./issue-tracker-github.md): GitHub issue tracker
+- [issue-types.md](./issue-types.md): issue types, title prefixes, and hierarchy
 - [triage-labels.md](./triage-labels.md): label mapping (only if `triage` is installed)
 - [domain.md](./domain.md): domain doc consumer rules + layout
 
 For "other" issue trackers, write `docs/agents/issue-tracker.md` from scratch using the user's description.
 
-**GitHub labels:** on a GitHub tracker, create each label that `gh label list` does not show:
+**GitHub labels:** on a GitHub tracker, create each label of this table that `gh label list` does not show. Skip the triage rows when Section B did not run. When Section B changed a triage label name, use the new name with the same color and description. Do not change a label that exists. `gh issue create --label` fails on a label that does not exist.
 
-- the five triage labels from Section B, when Section B ran
-- `wayfinder:map`, `wayfinder:research`, `wayfinder:prototype`, `wayfinder:grilling`, and `wayfinder:task`. `gh issue create --label` fails on a label that does not exist.
+| Label | Color | Description |
+| --- | --- | --- |
+| `type:epic` | `5319e7` | Large work and discussion |
+| `type:bug` | `d73a4a` | Failure that the automated tests do not catch |
+| `type:feature` | `a2eeef` | Spec: new behavior |
+| `type:task` | `fbca04` | Spec: change to existing behavior |
+| `type:ticket` | `0e8a16` | Unit of work for an implementation agent |
+| `needs-triage` | `ededed` | Maintainer needs to evaluate this issue |
+| `needs-info` | `d876e3` | Waiting on reporter for more information |
+| `ready-for-agent` | `0e8a16` | Fully specified, ready for an AFK agent |
+| `ready-for-human` | `1d76db` | Requires human implementation |
+| `wontfix` | `ffffff` | This will not be worked on |
+| `wayfinder:map` | `5319e7` | Wayfinder map |
+| `wayfinder:research` | `c5def5` | Wayfinder research ticket |
+| `wayfinder:prototype` | `c5def5` | Wayfinder prototype ticket |
+| `wayfinder:grilling` | `c5def5` | Wayfinder grilling ticket |
+| `wayfinder:task` | `c5def5` | Wayfinder task ticket |
 
 ```bash
-gh label create <name>
+gh label create <label> --color <color> --description "<description>"
 ```
 
 **CONTRIBUTING.md:** add the sections of [contributing.md](./contributing.md). When `CONTRIBUTING.md` exists, update its matching sections in place, and keep the other sections.

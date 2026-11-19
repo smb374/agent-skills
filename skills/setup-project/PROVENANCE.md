@@ -17,6 +17,7 @@
 | https://pre-commit.com/ (pre-commit 4.6.2 installed) | documentation | primary | 2026-11-19 | `pygrep` with `--multiline --negate`, `default_install_hook_types`, `commit-msg` stage, `core.hooksPath` refusal | none recorded |
 | compilerla/conventional-pre-commit v4.5.0 | code | primary | 2026-11-19 | the commit header hook | none recorded |
 | grilling session with the user | note | primary | 2026-11-19 | every decision below that cites the user | none recorded |
+| smb374/otnes `docs/agents/issue-types.md`, `docs/agents/triage-labels.md`, `AGENTS.md`, and `gh label list` | code | primary | 2026-11-19 | the issue types, the title prefixes, the hierarchy, the category table, and the label colors and descriptions | the user's own repo |
 
 ## Decisions
 
@@ -34,6 +35,9 @@
 | stop and ask on husky, lefthook, commitlint, or `core.hooksPath` | the user's choice. `pre-commit install` refuses to run with `core.hooksPath` | adopted |
 | ask the user to install pre-commit when it is not on the `PATH` | the user's choice | adopted |
 | remove the `/improve-codebase-architecture` mention from `domain.md` | the catalog does not keep that skill | adopted |
+| add the otnes issue types: `type:*` labels, title prefixes, hierarchy, and `[WF]` for Wayfinder children | the user's choice, from smb374/otnes | adopted |
+| make the otnes-only text general: the `type:bug` meaning, the `type:ticket` description, and "Not a Bug" | otnes names test ROMs, `/implement`, and `just verify` | adopted |
+| create each label with the otnes color and description, and do not change a label that exists | the user's choice | adopted |
 
 ## Coverage and gaps
 
@@ -53,3 +57,5 @@
 - Create the triage and `wayfinder:*` labels on GitHub.
 - Add the templates `contributing.md` and `pre-commit-config.yaml`.
 - Remove the `/improve-codebase-architecture` mention from `domain.md`.
+- Add the `issue-types.md` template and the `### Issue types` sub-block. Map the `bug` and `enhancement` categories to `type:bug` and `type:feature` in `triage-labels.md`. Set the title prefix and the `type:*` label in `issue-tracker-github.md`, and `[WF]` for Wayfinder children.
+- Create the `type:*`, triage, and `wayfinder:*` labels with a color and a description.
