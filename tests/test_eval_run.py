@@ -38,6 +38,10 @@ else:
 usage = {"input": 4, "cacheRead": 5, "cacheWrite": 1, "output": 5, "cost": {"total": 0.001}}
 msg = {"role": "assistant", "content": [{"type": "text", "text": text}], "usage": usage}
 print(json.dumps({"type": "session"}))
+if args[-1].startswith("/skill:"):
+    name = args[-1].split()[0][len("/skill:"):]
+    user = {"role": "user", "content": [{"type": "text", "text": f'<skill name="{name}">body</skill>'}]}
+    print(json.dumps({"type": "message_end", "message": user}))
 print(json.dumps({"type": "message_end", "message": msg}, ensure_ascii=False))
 """
 
@@ -167,6 +171,20 @@ class EvalRunTest(unittest.TestCase):
         )
         # Both arms drop discovered skills, so the user's skills cannot leak in.
         self.assertTrue(all("--no-skills" in c["args"] for c in agent_calls))
+        # The skill arm forces the load; the baseline prompt stays plain.
+        prompts = sorted(c["args"][-1] for c in agent_calls)
+        self.assertEqual(prompts, ["/skill:demo go", "go"])
+
+    def test_summary_counts_skill_loads(self):
+        _, out, _ = self.main("--runs", "1")
+        self.assertIn("| skill loaded | 0/1 | 1/1 |", out)
+
+    def test_skill_read_by_the_agent_counts_as_loaded(self):
+        call = {"type": "toolCall", "arguments": {"path": "/x/skills/demo/SKILL.md"}}
+        msg = {"role": "assistant", "content": [call]}
+        events = [{"type": "message_end", "message": msg}]
+        self.assertTrue(run.skill_loaded(events, "demo"))
+        self.assertFalse(run.skill_loaded(events, "other"))
 
     def test_judge_uses_judge_model(self):
         os.environ["EVAL_JUDGE_MODEL"] = "fake/judge"

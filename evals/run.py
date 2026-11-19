@@ -103,6 +103,27 @@ def assistant_messages(events):
     ]
 
 
+def skill_loaded(events, skill):
+    """True when /skill: put the skill in a user message, or the agent read SKILL.md."""
+    for e in events:
+        msg = e.get("message") or {}
+        if e.get("type") != "message_end":
+            continue
+        content = msg.get("content")
+        if isinstance(content, list):
+            content = "".join(p.get("text", "") for p in content)
+        if msg.get("role") == "user" and f'<skill name="{skill}"' in (content or ""):
+            return True
+        if msg.get("role") == "assistant":
+            for part in msg.get("content") or []:
+                path = str((part.get("arguments") or {}).get("path", ""))
+                if part.get("type") == "toolCall" and path.endswith(
+                    f"skills/{skill}/SKILL.md"
+                ):
+                    return True
+    return False
+
+
 def reply(events):
     messages = assistant_messages(events)
     if not messages:
@@ -238,8 +259,11 @@ def run_one(skill, case, arm, n, out, env):
         tools = TOOLS + (",bash" if case.get("bash") else "")
         # --no-skills drops discovered skills such as ~/.agents/skills; --skill still loads.
         arm_args = ["--no-skills"]
+        prompt = case["prompt"]
         if arm == "skill":
             arm_args += ["--skill", str(ROOT / "skills" / skill)]
+            # Force the load, so the arm measures the skill body, not its trigger.
+            prompt = f"/skill:{skill} {prompt}"
         try:
             stdout, events = pi(
                 [
@@ -248,13 +272,14 @@ def run_one(skill, case, arm, n, out, env):
                     "--tools",
                     tools,
                     *arm_args,
-                    case["prompt"],
+                    prompt,
                 ],
                 workdir,
                 run_env,
             )
             (run_dir / "events.jsonl").write_text(stdout)
             result["usage"] = usage(events)
+            result["skill_loaded"] = skill_loaded(events, skill)
             for check in case["checks"]:
                 ok, reason = CHECKS[check["type"]](check, workdir, run_env)
                 result["verdicts"].append(
@@ -304,6 +329,11 @@ def summarize(skill, cases, results, env, runs):
             + " | ".join(f"**{p}/{c}**" for p, c in totals.values())
             + " |"
         )
+        cells = [
+            f"{sum(bool(r.get('skill_loaded')) for r in rs if r['arm'] == arm)}/{runs}"
+            for arm in ARMS
+        ]
+        lines.append(f"| skill loaded | {' | '.join(cells)} |")
         for key, label in (("input", "input tokens"), ("output", "output tokens")):
             cells = [
                 str(sum((r["usage"] or {}).get(key, 0) for r in rs if r["arm"] == arm))
