@@ -26,7 +26,7 @@ This file is the list of skills that this repo installs or plans to install. It 
 
 | Stage | Step | Skill | Kind | Source | Status |
 | --- | --- | --- | --- | --- | --- |
-| 0 Bootstrap | AGENTS.md, CONTRIBUTING.md, issue tracker, docs layout | `setup-project` (name TBD) | flow | Own. Reuse the tracker and label part of `setup-matt-pocock-skills`. | own |
+| 0 Bootstrap | AGENTS.md, CONTRIBUTING.md, issue tracker, labels, docs layout, commit hooks | `setup-project` | flow | mattpocock/skills `setup-matt-pocock-skills` (MIT). GitHub or "other" tracker only. Add AGENTS.md, CONTRIBUTING.md, GitHub labels, and pre-commit hooks for the commit header and the issue footer. | done |
 | 1 Intake | Epic to specs | `wayfinder` | flow | mattpocock/skills | vendor |
 | 1 Intake | Interview, used in every stage | `grilling` | knowledge | mattpocock/skills, with the Pi fork changes in harness-neutral words | done |
 | 1 Intake | Interview entry points | `grill-me`, `grill-with-docs` | flow | mattpocock/skills | vendor |
@@ -63,14 +63,10 @@ ask-matt, code-review, feature-plan, find-skills, handoff, implement, implement-
 
 ## Open decisions
 
-1. The name of the setup skill. The suggestion is `setup-project`.
-2. `wayfinder`, `to-spec`, `to-tickets`, and `triage` tell the user to run `/setup-matt-pocock-skills` when no tracker is configured. That skill is not kept. Options:
-   - `setup-project` writes the same tracker and label docs, so the message does not show.
-   - Fork the four skills, and change the message to name `setup-project`.
-   - Keep `setup-matt-pocock-skills` as a vendor skill until `setup-project` exists.
-3. Branch to tickets: should `setup-project` enforce a `Refs: #N` commit footer with a hook or commitlint, or only write a CONTRIBUTING.md convention?
-4. Skill-to-skill references. Sentry `design-principles.md` says "Do not require another skill by name at runtime." But `grill-me` and `grill-with-docs` exist only to start `grilling`. Options: refer by name and accept the coupling, use a sibling path, or merge the entry points into `grilling`.
-5. `plan-ticket-impl`: a separate skill, or a step in `implement-flow`? The Pi config repo decides this.
+1. Skill-to-skill references. Sentry `design-principles.md` says "Do not require another skill by name at runtime." But `grill-me` and `grill-with-docs` exist only to start `grilling`. Options: refer by name and accept the coupling, use a sibling path, or merge the entry points into `grilling`.
+2. `plan-ticket-impl`: a separate skill, or a step in `implement-flow`? The Pi config repo decides this.
+
+`wayfinder`, `to-spec`, `to-tickets`, and `triage` still tell the user to run `/setup-matt-pocock-skills` when a repo has no tracker config. Run `setup-project` instead. It writes the same `docs/agents/` files, so the message does not show after setup.
 
 ## Install target
 

@@ -1,16 +1,19 @@
 ---
-name: setup-matt-pocock-skills
-description: "Configure this repo for the engineering skills: set up its issue tracker, triage label vocabulary, and domain doc layout. Run once before first use of the other engineering skills."
+name: setup-project
+description: "Set up a repo for the engineering skills and for issue-linked commits: the issue tracker, the triage and wayfinder labels, the domain doc layout, AGENTS.md, CONTRIBUTING.md, and pre-commit hooks that check the commit header and the issue footer. Run once per repo, before the first use of the other engineering skills."
+license: MIT
 disable-model-invocation: true
 ---
 
-# Setup Matt Pocock's Skills
+# Setup Project
 
-Scaffold the per-repo configuration that the engineering skills assume:
+Scaffold the per-repo configuration that the engineering skills assume, and the commit rules that link the work to its issues:
 
-- **Issue tracker**: where issues live (GitHub by default; local markdown is also supported out of the box)
-- **Triage labels**: the strings used for the five canonical triage roles
+- **Issue tracker**: where issues live (GitHub by default, or a workflow that the user describes)
+- **Triage labels**: the strings used for the five canonical triage roles, and the labels in the tracker
 - **Domain docs**: where `GLOSSARY.md` and ADRs live, and the consumer rules for reading them
+- **AGENTS.md**: the project commands and the `## Agent skills` block
+- **CONTRIBUTING.md and git hooks**: Conventional Commits, the issue footer, the branch name, and a pre-commit config that checks them
 
 This is a prompt-driven skill, not a deterministic script. Explore, present what you found, confirm with the user, then write.
 
@@ -25,9 +28,12 @@ Look at the current repo to understand its starting state. Read whatever exists;
 - `GLOSSARY.md` and `GLOSSARY-MAP.md` at the repo root, and the legacy `CONTEXT.md` / `CONTEXT-MAP.md`. If a legacy file exists, offer to `git mv` it to its `GLOSSARY` name and rewrite those names in `docs/agents/domain.md`.
 - `docs/adr/` and any `src/*/docs/adr/` directories
 - `docs/agents/`: does this skill's prior output already exist?
-- `.scratch/`: a sign that a local-markdown issue tracker convention is already in use
 - Is the `triage` skill installed? (a `triage` skill folder alongside this one, or `triage` in your available skills.) This decides whether Section B runs at all.
 - Monorepo signals: a `pnpm-workspace.yaml`, a `workspaces` field in `package.json`, or a populated `packages/*` with its own `src/`. These are present only in a genuinely large multi-package repo; their absence means single-context, which is almost every repo.
+- The project commands: `justfile`, `Makefile`, the `scripts` of `package.json`, and the tasks of `pyproject.toml`, `Cargo.toml`, or `flake.nix`. Find the commands to format, lint, test, and check.
+- `CONTRIBUTING.md`: does it exist? Does it already state a commit or branch convention?
+- Git hooks: `.pre-commit-config.yaml`, `.husky/`, `lefthook.yml`, `.lefthook.yml`, a commitlint config (`commitlint.config.*`, `.commitlintrc*`), and `git config core.hooksPath`.
+- `command -v pre-commit`: is pre-commit on the `PATH`?
 
 ### 2. Present findings and ask
 
@@ -37,18 +43,16 @@ Lead each section with the recommended answer so the user can accept it in a wor
 
 **Section A: Issue tracker.**
 
-> Explainer: The "issue tracker" is where issues live for this repo. Skills like `to-tickets`, `triage`, and `to-spec` read from and write to it. They need to know whether to call `gh issue create`, write a markdown file under `.scratch/`, or follow some other workflow you describe. Pick the place you actually track work for this repo.
+> Explainer: The "issue tracker" is where issues live for this repo. Skills like `to-tickets`, `triage`, and `to-spec` read from and write to it. They need to know whether to call `gh issue create` or follow some other workflow you describe. Pick the place you actually track work for this repo.
 
-Default posture: these skills were designed for GitHub. If a `git remote` points at GitHub, propose that. If a `git remote` points at GitLab (`gitlab.com` or a self-hosted host), propose GitLab. Otherwise (or if the user prefers), offer:
+Default posture: these skills were designed for GitHub. If a `git remote` points at GitHub, propose that. Otherwise (or if the user prefers), offer:
 
 - **GitHub**: issues live in the repo's GitHub Issues (uses the `gh` CLI)
-- **GitLab**: issues live in the repo's GitLab Issues (uses the [`glab`](https://gitlab.com/gitlab-org/cli) CLI)
-- **Local markdown**: issues live as files under `.scratch/<feature>/` in this repo (good for solo projects or repos without a remote)
-- **Other** (Jira, Linear, etc.): ask the user to describe the workflow in one paragraph; the skill will record it as freeform prose
+- **Other** (GitLab, Jira, Linear, etc.): ask the user to describe the workflow in one paragraph; the skill will record it as freeform prose
 
-Record the choice in `docs/agents/issue-tracker.md`. The GitHub and GitLab templates carry a "PRs as a request surface" flag, defaulted **off**. Leave it off and don't raise it: a user who wants external PRs in the triage queue can flip the flag in the file later.
+Record the choice in `docs/agents/issue-tracker.md`. The GitHub template carries a "PRs as a request surface" flag, defaulted **off**. Leave it off and don't raise it: a user who wants external PRs in the triage queue can flip the flag in the file later.
 
-A GitHub or GitLab tracker needs a reachable repo. When the user picks one and no `git remote` points at that host, get the repo URL from them and wire it up (`git init` if needed, `git remote add origin <url>`) before going further. Done when `gh repo view` / `glab repo view` prints the project from inside this directory; if it can't, stop and tell the user what's missing.
+A GitHub tracker needs a reachable repo. When the user picks it and no `git remote` points at GitHub, get the repo URL from them and wire it up (`git init` if needed, `git remote add origin <url>`) before going further. Done when `gh repo view` prints the project from inside this directory; if it can't, stop and tell the user what's missing.
 
 **Section B: Triage label vocabulary.** Skip this section entirely if the `triage` skill isn't installed (exploration told you), since an uninstalled skill needs no labels.
 
@@ -62,26 +66,31 @@ The defaults are the five canonical roles, each label string equal to its name: 
 
 Offer **multi-context** (a root `GLOSSARY-MAP.md` pointing to per-context `GLOSSARY.md` files) only when exploration found monorepo signals. Then confirm which layout they want.
 
+**Section D: Commit rules and git hooks.** Do not ask about the rules. They come from [contributing.md](./contributing.md) and [pre-commit-config.yaml](./pre-commit-config.yaml). Check the preconditions:
+
+- When exploration found husky, lefthook, a commitlint config, or a `core.hooksPath` value, stop this section. Tell the user what you found, and ask how to continue. `pre-commit install` refuses to run when `core.hooksPath` is set.
+- When `pre-commit` is not on the `PATH`, ask the user to install it with their tool of choice (for example nix, mise, pipx, or the system package manager). Continue when `pre-commit --version` succeeds.
+- When `CONTRIBUTING.md` already states a different commit or branch convention, show the conflict and ask which one to keep.
+
 ### 3. Confirm and edit
 
 Show the user a draft of:
 
-- The `## Agent skills` block to add to whichever of `CLAUDE.md` / `AGENTS.md` is being edited (see step 4 for selection rules)
+- The `AGENTS.md` changes (see step 4)
 - The contents of `docs/agents/issue-tracker.md`, `docs/agents/domain.md`, and `docs/agents/triage-labels.md` (the last only when `triage` is installed)
+- The `CONTRIBUTING.md` sections and the `.pre-commit-config.yaml` hooks
 
 Let them edit before writing.
 
 ### 4. Write
 
-**Pick the file to edit:**
+**AGENTS.md:**
 
-- If `CLAUDE.md` exists, edit it.
-- Else if `AGENTS.md` exists, edit it.
-- If neither exists, ask the user which one to create; don't pick for them.
+- Always write the instructions to `AGENTS.md`.
+- If only `CLAUDE.md` exists, ask the user to move its content into `AGENTS.md` and to make `CLAUDE.md` the single line `@AGENTS.md`. Do the move only when the user agrees. If the user says no, write to `CLAUDE.md`.
+- If neither file exists, create `AGENTS.md` with a `## Commands` section and the `## Agent skills` block. `## Commands` lists only the commands that exploration found, one line each (for example `- Test: just test`). Add nothing that an agent can read from the code.
 
-Never create `AGENTS.md` when `CLAUDE.md` already exists (or vice versa); always edit the one that's already there.
-
-If an `## Agent skills` block already exists in the chosen file, update its contents in-place rather than appending a duplicate. Don't overwrite user edits to the surrounding sections.
+If an `## Agent skills` block already exists, update its contents in place rather than appending a duplicate. Don't overwrite user edits to the surrounding sections.
 
 The block:
 
@@ -99,22 +108,41 @@ The block:
 ### Domain docs
 
 [one-line summary of layout: "single-context" or "multi-context"]. See `docs/agents/domain.md`.
+
+### Commits
+
+Conventional Commits with an issue footer (`Refs: #N`, `Fixes #N`). See `CONTRIBUTING.md`.
 ```
 
 Include the `### Triage labels` sub-block, and write `docs/agents/triage-labels.md`, only when `triage` is installed and Section B ran. When it isn't, both are omitted.
 
-When Section B ran on GitHub or GitLab, create each configured label the tracker lacks (`gh label create` / `glab label create`).
-
-Then write the docs files using the seed templates in this skill folder as a starting point:
+**Docs files:** write them from the seed templates in this skill folder:
 
 - [issue-tracker-github.md](./issue-tracker-github.md): GitHub issue tracker
-- [issue-tracker-gitlab.md](./issue-tracker-gitlab.md): GitLab issue tracker
-- [issue-tracker-local.md](./issue-tracker-local.md): local-markdown issue tracker
 - [triage-labels.md](./triage-labels.md): label mapping (only if `triage` is installed)
 - [domain.md](./domain.md): domain doc consumer rules + layout
 
 For "other" issue trackers, write `docs/agents/issue-tracker.md` from scratch using the user's description.
 
+**GitHub labels:** on a GitHub tracker, create each label that `gh label list` does not show:
+
+- the five triage labels from Section B, when Section B ran
+- `wayfinder:map`, `wayfinder:research`, `wayfinder:prototype`, `wayfinder:grilling`, and `wayfinder:task`. `gh issue create --label` fails on a label that does not exist.
+
+```bash
+gh label create <name>
+```
+
+**CONTRIBUTING.md:** add the sections of [contributing.md](./contributing.md). When `CONTRIBUTING.md` exists, update its matching sections in place, and keep the other sections.
+
+**pre-commit:** copy the hooks of [pre-commit-config.yaml](./pre-commit-config.yaml) into `.pre-commit-config.yaml`. When the file exists, add the two hooks and the `commit-msg` hook type, and keep the other hooks. Then run:
+
+```bash
+pre-commit install
+```
+
+Done when the output names `.git/hooks/commit-msg`.
+
 ### 5. Done
 
-Tell the user the setup is complete and which engineering skills will now read from these files. Mention they can edit `docs/agents/*.md` directly later; re-running this skill is only necessary if they want to switch issue trackers or restart from scratch.
+Tell the user the setup is complete and which engineering skills will now read from these files. Mention they can edit `docs/agents/*.md`, `CONTRIBUTING.md`, and `.pre-commit-config.yaml` directly later; re-running this skill is only necessary if they want to switch issue trackers or restart from scratch.
