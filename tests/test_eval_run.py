@@ -208,6 +208,13 @@ class EvalRunTest(unittest.TestCase):
         verdicts = json.loads((self.result_dir() / "verdicts.json").read_text())
         self.assertIn("not a verdict", verdicts[0]["verdicts"][-1]["reason"])
 
+    def test_judge_verdict_with_trailing_text_is_read(self):
+        os.environ["FAKE_JUDGE"] = (
+            '{"pass": true, "reason": "ok"}\nNote: the schema uses {"db": "replica"}.'
+        )
+        _, out, _ = self.main("--runs", "1")
+        self.assertIn("| judged | 1/1 | 1/1 |", out)
+
     def test_pi_failure_is_reported_and_exits_1(self):
         os.environ["FAKE_PI_FAIL"] = "1"
         code, out, _ = self.main("--runs", "1")

@@ -195,13 +195,15 @@ def check_judge(check, workdir, env):
         env,
     )
     text = reply(events)
-    match = re.search(r"\{.*\}", text, re.S)
+    # Take the first JSON object; the judge may add text with braces after it.
+    start = text.find("{")
     try:
-        verdict = json.loads(match.group(0)) if match else None
+        verdict = json.JSONDecoder().raw_decode(text, start)[0] if start >= 0 else None
     except json.JSONDecodeError:
         verdict = None
     if not isinstance(verdict, dict) or not isinstance(verdict.get("pass"), bool):
-        return False, f"judge reply is not a verdict: {text[:200]!r}"
+        shown = text if len(text) <= 400 else f"{text[:200]} ... {text[-200:]}"
+        return False, f"judge reply is not a verdict: {shown!r}"
     return verdict["pass"], verdict.get("reason", "")
 
 
