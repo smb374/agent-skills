@@ -41,6 +41,10 @@ The rules come from the compiled supplement. This rewrite did not fetch the publ
 | the prose is in Simplified Technical English | a model parses this text with no human to resolve an ambiguity | adopted |
 | a per-harness tool-name reference file | no mapping file exists in this repo yet | deferred |
 
+## Shared rules
+
+`writing-agent-docs` holds a copy of some writing rules of this skill. The list of the shared rules is in `skills/writing-agent-docs/PROVENANCE.md`, section Shared rules. When you change one of them here, check the other copy.
+
 ## Coverage and gaps
 
 | Dimension | Status | Next retrieval action |

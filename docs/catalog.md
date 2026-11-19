@@ -40,7 +40,7 @@ This file is the list of skills that this repo installs or plans to install. It 
 | 3 PR | PR review | `pr-review` | flow | Pi config repo | pi-config |
 | 4 Issues | Triage, then tickets, then stage 2 | `triage`, then `to-tickets` | flow | mattpocock/skills | vendor |
 | Meta | Skill authoring | `skill-writer` | knowledge | getsentry/skills (Apache-2.0), with the public supplement | done |
-| Meta | AGENTS.md, CLAUDE.md, agent briefs, system prompts, tool descriptions | `writing-agent-docs` | knowledge | Own. `skill-writer` sends these requests to it. | own |
+| Meta | AGENTS.md, CLAUDE.md, disclosed docs, agent briefs, system prompts, tool descriptions, error and hook messages | `writing-agent-docs` | knowledge | mattpocock/skills `writing-for-agents` (MIT), rewritten and extended with vendor research. `skill-writer` sends these requests to it. | done |
 
 ## Cross-cutting skills
 
@@ -72,6 +72,7 @@ ask-matt, code-review, feature-plan, find-skills, handoff, implement, implement-
 4. Keep `wait-what`?
 5. Skill-to-skill references. Sentry `design-principles.md` says "Do not require another skill by name at runtime." But `grill-me` and `grill-with-docs` exist only to start `grilling`. Options: refer by name and accept the coupling, use a sibling path, or merge the entry points into `grilling`.
 6. `plan-ticket-impl`: a separate skill, or a step in `implement-flow`? The Pi config repo decides this.
+7. Trigger split between `writing-agent-docs` and `asd-ste100`. Both descriptions trigger on system prompts and tool descriptions. Decide the split when `asd-ste100` moves into this repo.
 
 ## Install target
 
