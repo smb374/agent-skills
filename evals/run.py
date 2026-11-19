@@ -236,11 +236,10 @@ def run_one(skill, case, arm, n, out, env):
         shutil.copytree(ROOT / "evals" / "pi-agent", agent_dir)
         run_env = {**env, "PI_CODING_AGENT_DIR": str(agent_dir)}
         tools = TOOLS + (",bash" if case.get("bash") else "")
-        arm_args = (
-            ["--skill", str(ROOT / "skills" / skill)]
-            if arm == "skill"
-            else ["--no-skills"]
-        )
+        # --no-skills drops discovered skills such as ~/.agents/skills; --skill still loads.
+        arm_args = ["--no-skills"]
+        if arm == "skill":
+            arm_args += ["--skill", str(ROOT / "skills" / skill)]
         try:
             stdout, events = pi(
                 [

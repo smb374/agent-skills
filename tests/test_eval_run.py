@@ -165,7 +165,8 @@ class EvalRunTest(unittest.TestCase):
             skill_args[0][skill_args[0].index("--skill") + 1],
             str(self.root / "skills" / "demo"),
         )
-        self.assertEqual(sum("--no-skills" in c["args"] for c in agent_calls), 1)
+        # Both arms drop discovered skills, so the user's skills cannot leak in.
+        self.assertTrue(all("--no-skills" in c["args"] for c in agent_calls))
 
     def test_judge_uses_judge_model(self):
         os.environ["EVAL_JUDGE_MODEL"] = "fake/judge"
