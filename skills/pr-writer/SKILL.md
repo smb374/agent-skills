@@ -1,7 +1,11 @@
 ---
 name: pr-writer
 description: Create or refresh reviewer-facing PR titles and descriptions. Use when opening a PR, updating its title or body, or preparing branch changes for review.
+license: Apache-2.0
+disable-model-invocation: true
 ---
+
+<!-- Derived from getsentry/skills skills/pr-writer @ a582c51 (Apache-2.0); modified. -->
 
 # PR Writer
 
@@ -48,8 +52,10 @@ commit or existing PR text.
 
 Use `<type>(<scope>): <subject>` or `<type>: <subject>`.
 
-Allowed types: `feat`, `fix`, `ref`, `perf`, `docs`, `test`, `build`,
-`ci`, `chore`, `style`, `meta`, `license`, and `revert`.
+Follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).
+When the repository documents its own commit types (a commitlint config or
+`CONTRIBUTING.md`), use those types. Otherwise use `feat`, `fix`, `refactor`,
+`perf`, `docs`, `test`, `build`, `ci`, `chore`, `style`, or `revert`.
 
 - Describe the dominant full-branch change with the narrowest accurate type
   and scope.
