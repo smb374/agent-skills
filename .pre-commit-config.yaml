@@ -8,7 +8,7 @@ repos:
   - repo: local
     hooks:
       - id: issue-footer
-        name: commit refers to an issue
+        name: "commit footer needs Refs: #N, Fixes #N, or Closes #N (docs, chore, ci, build, style, revert are exempt)"
         language: pygrep
         entry: '\A(?:(?:docs|chore|ci|build|style|revert)(?:\([^)\n]*\))?!?:|Merge |fixup! |squash! |amend! )|^(?:Refs|Fixes|Closes):? #\d+'
         args: [--multiline, --negate]
