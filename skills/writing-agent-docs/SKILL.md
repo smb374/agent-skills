@@ -27,7 +27,7 @@ Use this skill to write or change one document that an agent reads. Success has 
 
 ## Step 1: Classify the document
 
-Find the type, the load, and the reader. The load tells you how hard to prune.
+Find the type, the load, and the reader. The load tells you how hard to prune. Then read the reference for the type before you change the document.
 
 | Type | Load | Reader | Reference |
 | --- | --- | --- | --- |
@@ -39,7 +39,7 @@ Find the type, the load, and the reader. The load tells you how hard to prune.
 | tool description | each turn while the tool is active | the agent that picks and calls tools | `tool-descriptions.md` |
 | error or hook message | each time it fires | the agent that must act next | `tool-descriptions.md` |
 
-Done when you can name the type, the load, and the reader of the document.
+Done when you can name the type, the load, and the reader of the document, and you have read its reference.
 
 ## Step 2: Place each piece
 
@@ -48,7 +48,7 @@ Done when you can name the type, the load, and the reader of the document.
 | a convention for each task in the repo | the instructions file |
 | a convention for one part of the repo | a nested instructions file, or a disclosed doc behind a pointer |
 | a procedure that the agent needs sometimes | a skill. Use `skill-writer` |
-| a constraint that a regex, a path, or a command can check | a hook, a lint rule, or a permission rule |
+| a constraint that a regex, a path, or a command can check | a hook, a lint rule, a permission rule, or a gate in the check recipe. Add the gate when none exists |
 | a fact that config, a script, or `--help` already shows | nothing. The environment is the source |
 | a one-off fix | nothing |
 
@@ -56,7 +56,7 @@ Done when each piece has one place, and no piece restates the environment.
 
 ## Step 3: Write
 
-1. Open the reference for the type from Step 1.
+1. Apply the reference for the type from Step 1.
 2. Open `references/levers.md` for the craft that each type uses.
 3. Write the target behaviour first. Add a ban only as a guardrail with its safe path.
 

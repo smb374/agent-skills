@@ -77,7 +77,7 @@ The research brief `docs/research/writing-agent-docs.md` (repo root) holds the q
 | hook channels other than Claude Code | partial: a portable rule only | add a row when a second harness needs it |
 | agent briefs: "Building effective agents" and the Claude Code best-practices page | partial: not read | read both, and compare with `agent-prompts.md` |
 | a measured study of file length and adherence | missing | search for one study, then keep or drop the size target |
-| baseline runs with and without the skill | missing | run 2 or 3 prompts per document type |
+| baseline runs with and without the skill | partial: `evals/writing-agent-docs/`, 3 cases | add a case per document type that has none |
 
 ## Local changes
 
@@ -86,3 +86,4 @@ The research brief `docs/research/writing-agent-docs.md` (repo root) holds the q
 - Replace the [MP] rule "use a stronger word" with model-relative emphasis.
 - Add 3 levers from the research: prose or enforcement, the contradiction check, and the model audit.
 - Add the steps, the router, and the references for instructions files, agent prompts, and tool messages.
+- Tell the agent to add a gate before it deletes a format or lint rule that no tool enforces. The eval showed that the skill kept such a rule as prose in 3 of 3 runs.

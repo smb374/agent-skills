@@ -22,10 +22,10 @@ Write what the agent cannot find by looking:
 
 Add a rule when the agent makes the same mistake a second time, or when a review catches something that the agent should know.
 
-Write each rule so that a reviewer can check it. Name the behaviour to flag and its safe path. Leave format and lint rules to the tools.
+Write each rule so that a reviewer can check it. Name the behaviour to flag and its safe path. Leave format and lint rules to the tools. When no tool enforces such a rule yet, add the gate first: a check recipe, a CI step, or a pre-commit hook that fails on a violation. Then delete the prose line.
 
 Bad: `Format code properly.`
-Good: the formatter config holds the format rule, and the file has no line about it.
+Good: the `check` recipe runs `prettier --check .`, and the file has no line about format.
 
 Claude Code and Codex give the file to the model as a user message, not as the system prompt. Call the file "project instructions" in its own text.
 
@@ -74,7 +74,7 @@ For a repo that Claude Code and other harnesses both use, keep the text in `AGEN
 
 - [ ] Each line passes the pruning pass in `levers.md`.
 - [ ] No line restates a script, a config file, or `--help`.
-- [ ] Each must-hold rule is a hook, a lint rule, or a permission rule.
+- [ ] Each must-hold rule is a hook, a lint rule, a permission rule, or a gate in the check recipe. A manual recipe such as `fmt` is not a gate.
 - [ ] Each pointer starts with its condition.
 - [ ] No nested file contradicts its parent.
 - [ ] The file is within the vendor limits: 200 lines per file, 32 KiB for all files.
