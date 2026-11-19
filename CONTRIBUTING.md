@@ -51,6 +51,8 @@ Use two commits, so that `git diff` of the second commit shows only your changes
 
 Write commit messages in [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) format: `<type>(<scope>)!: <description>`. Use the skill name as the scope.
 
+Use `feat` for a new skill or a new skill workflow. Use `chore` for a change to a config template that a skill installs, for example a pre-commit hook. Use `fix` when a skill gives wrong output.
+
 Refer to the issue in the commit footer:
 
 - `Refs: #N` for a commit that works on issue N.
