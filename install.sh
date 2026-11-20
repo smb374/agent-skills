@@ -3,7 +3,7 @@
 set -eu
 
 # Each of these skills gets a copy of fill/fill.py as scripts/fill.py.
-fill_skills="handoff"
+fill_skills="handoff to-impl-plan"
 
 usage() {
     echo "usage: install.sh [--src DIR] [--dir DIR] [--agent AGENT] [--no-vendor] [--force]" >&2

@@ -32,7 +32,8 @@ This file is the list of skills that this repo installs or plans to install. It 
 | 1 Intake | Interview entry points | `grill-me`, `grill-with-docs` | flow | mattpocock/skills | vendor |
 | 1 Intake | Glossary and ADRs | `domain-modeling` | knowledge | mattpocock/skills | vendor |
 | 1 Intake | Spec, then tickets | `to-spec`, `to-tickets` | flow | mattpocock/skills. Point them at `setup-project`. | done |
-| 2 Tickets | Scout, brief, worker, verify, review, commit | `implement-flow`, `implement-spec-flow`, `plan-ticket-impl` | flow | Pi config repo | pi-config |
+| 2 Tickets | Scout, brief, worker, verify, review, commit | `implement-flow`, `implement-spec-flow`, `plan-ticket-impl` | flow | Pi config repo. `plan-ticket-impl` wraps `to-impl-plan` with the plan review and the Pi Builder contract. | pi-config |
+| 2 Tickets | Plan in builder stages, for a ticket too big for one builder run or a run that went wrong | `to-impl-plan` | knowledge, started by the user or a flow | Own, ported from the Pi `plan-ticket-impl`. Ships the plan template, the contract partial, and `fill`. | done |
 | 2 Tickets | Code writing | `tdd`, `diagnosing-bugs`, `codebase-design` | knowledge | mattpocock/skills | vendor |
 | 3 PR | Find the target issue and its sub-issues. Else ask the user, or use the branch commits | A step in `pr-writer`, with `gh` commands | — | Own | done |
 | 3 PR | PR body | `pr-writer` | knowledge, started by the user or another flow | getsentry/skills (Apache-2.0). Change it to Conventional Commits titles. | done |
@@ -66,11 +67,12 @@ ask-matt, code-review, feature-plan, find-skills, handoff, implement, implement-
 
 ## Open decisions
 
-1. `plan-ticket-impl`: a separate skill, or a step in `implement-flow`? The Pi config repo decides this.
+None.
 
 ## Resolved decisions
 
 1. Skill-to-skill references. Sentry `design-principles.md` says "Do not require another skill by name at runtime." Decision: refer by name and accept the coupling. The forks `wayfinder`, `to-spec`, `to-tickets`, and `triage` tell the user to run `/setup-project`, a setup workflow, not knowledge. The vendored `grill-me`, `grill-with-docs`, and `tdd` keep "call the Skill tool", because they work in Pi as intended.
+2. `plan-ticket-impl`: a separate skill, or a step in `implement-flow`? Decision: it splits into the portable `to-impl-plan` in this repo and a Pi wrapper `plan-ticket-impl` in the Pi config repo.
 
 ## Install target
 
