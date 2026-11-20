@@ -223,8 +223,22 @@ def hint_before(text, offset):
     return match.group(1).strip() if match else ""
 
 
-class Template:
-    """A top template with its partials, and the key uses found in them."""
+def read_utf8(path):
+    # Not Path.read_text: its universal newlines would turn \r\n into \n.
+    return path.read_bytes().decode("utf-8")
+
+
+class Use(NamedTuple):
+    kind: str
+    dot: bool  # an open section whose own body uses {{.}}
+
+
+def as_variable(uses):
+    return any(use.kind in VARIABLE_KINDS for use in uses)
+
+
+class TemplateScan:
+    """A top template and its partials, read and checked, with the key uses."""
 
     def __init__(self, path):
         self.dir = path.parent
@@ -233,9 +247,9 @@ class Template:
         self.partials = {}
         self.parsed = {}  # partial name -> nodes
         self.stack = []  # partials being walked, to find recursion
-        self.uses = {}  # key -> [(kind, section body uses {{.}})]
+        self.uses = {}
         self.hints = {}
-        text = path.read_bytes().decode("utf-8")
+        text = read_utf8(path)
         self.text = text
         self.no_escape = text.split("\n", 1)[0] == PRAGMA
         self.check_pragma(text, "template", top=True)
@@ -262,21 +276,10 @@ class Template:
             self.fail(f"{where}: template error: {error}")
             return []
 
-    def has_dot(self, nodes, seen=()):
-        for node in nodes:
-            if node.kind == "partial":
-                if node.value not in seen and self.has_dot(
-                    self.partial_nodes(node.value), (*seen, node.value)
-                ):
-                    return True
-            elif node.kind == "inverted":
-                if self.has_dot(node.children, seen):
-                    return True
-            elif node.kind not in ("text", "open") and node.value == ".":
-                return True
-        return False
-
     def walk_nodes(self, nodes, text, sections):
+        """Record the key uses. Return True when a {{.}} belongs to the nearest
+        enclosing open section: an inverted section or a partial passes it up."""
+        dot = False
         for node in nodes:
             if node.kind == "partial":
                 if node.value in self.stack:
@@ -284,23 +287,24 @@ class Template:
                     continue
                 partial = self.partial_nodes(node.value)
                 self.stack.append(node.value)
-                self.walk_nodes(partial, self.partials[node.value], sections)
+                dot |= self.walk_nodes(partial, self.partials[node.value], sections)
                 self.stack.pop()
+            elif node.value == "." and node.kind != "text":
+                if "open" not in sections:
+                    self.problems.append("{{.}} must be inside a {{#key}} list section")
+                dot = True
             elif node.kind != "text":
-                if node.value == ".":
-                    if "open" not in sections:
-                        self.problems.append(
-                            "{{.}} must be inside a {{#key}} list section"
-                        )
-                else:
-                    key = node.value
-                    if "." in key:
-                        self.problems.append(f"dotted tag name not allowed: {key}")
-                    if key not in self.uses:
-                        self.hints[key] = hint_before(text, node.offset)
-                    dot = node.kind == "open" and self.has_dot(node.children)
-                    self.uses.setdefault(key, []).append((node.kind, dot))
-                self.walk_nodes(node.children, text, [*sections, node.kind])
+                key = node.value
+                if "." in key:
+                    self.problems.append(f"dotted tag name not allowed: {key}")
+                if key not in self.uses:
+                    self.hints[key] = hint_before(text, node.offset)
+                uses = self.uses.setdefault(key, [])
+                inner = self.walk_nodes(node.children, text, [*sections, node.kind])
+                uses.append(Use(node.kind, node.kind == "open" and inner))
+                if node.kind == "inverted":
+                    dot |= inner
+        return dot
 
     def partial_nodes(self, name):
         """Load a partial file once and return its nodes ([] when unusable)."""
@@ -312,7 +316,7 @@ class Template:
             self.partials[name] = ""
             self.fail(f"partial not found: {name}")
         else:
-            text = path.read_bytes().decode("utf-8")
+            text = read_utf8(path)
             self.partials[name] = text
             self.check_pragma(text, f"partial {name}")
             nodes = self.parse_text(text, f"partial {name}")
@@ -321,86 +325,80 @@ class Template:
 
     def field_type(self, key):
         uses = self.uses[key]
-        if any(kind in VARIABLE_KINDS for kind, _ in uses):
+        if as_variable(uses):
             return "string"
-        return "list" if any(dot for _, dot in uses) else "bool"
+        return "list" if any(use.dot for use in uses) else "bool"
+
+    def skeleton(self):
+        """Return the --fields output: the null skeleton and the key lines."""
+        content = json.dumps({key: None for key in self.uses}, indent=2) + "\n"
+        lines = []
+        for key in self.uses:
+            hint = self.hints[key]
+            line = f"{key} ({self.field_type(key)}):"
+            lines.append(f"{line} {hint}" if hint else line)
+        return content, "\n".join(lines)
+
+    def check(self, values):
+        problems = []
+        for key in self.uses:
+            if key not in values:
+                problems.append(f"missing key in values: {key}")
+        for key, value in values.items():
+            uses = self.uses.get(key)
+            if uses is None:
+                if not self.broken:
+                    problems.append(f"unknown key (no tag uses it): {key}")
+                continue
+            problems += check_value(key, value, uses)
+        return problems
+
+    def render(self, values, no_escape):
+        escape = (lambda text: text) if no_escape or self.no_escape else html_escape
+        return render(self.text, values, self.partials, escape)
 
 
-def check_values(template, values):
+def check_value(key, value, uses):
     problems = []
-    for key in template.uses:
-        if key not in values:
-            problems.append(f"missing key in values: {key}")
-    for key, value in values.items():
-        uses = template.uses.get(key)
-        if uses is None:
-            if not template.broken:
-                problems.append(f"unknown key (no tag uses it): {key}")
-            continue
-        as_variable = any(kind in VARIABLE_KINDS for kind, _ in uses)
-        as_section = any(kind in ("open", "inverted") for kind, _ in uses)
-        if isinstance(value, bool):
-            if any(kind == "open" and dot for kind, dot in uses):
-                problems.append(f"{key}: a boolean section cannot use {{{{.}}}}")
-            if as_variable:
-                problems.append(f"{key}: a boolean cannot be used as a variable")
-        elif isinstance(value, str):
-            if value == "":
-                problems.append(f"{key}: empty string")
-            if as_section:
-                problems.append(f"{key}: a string can be used only as a variable")
-        elif isinstance(value, list):
-            if not value and not any(kind == "inverted" for kind, _ in uses):
-                problems.append(f"{key}: empty list needs a {{{{^{key}}}}} section")
-            if as_variable:
-                problems.append(f"{key}: a list cannot be used as a variable")
-            if any(kind == "open" and not dot for kind, dot in uses):
-                problems.append(f"{key}: every {{{{#{key}}}}} body must use {{{{.}}}}")
-            for index, item in enumerate(value):
-                if not isinstance(item, str):
-                    problems.append(f"{key}[{index}]: list items must be strings")
-                elif item == "":
-                    problems.append(f"{key}[{index}]: empty string")
-        else:
-            problems.append(
-                f"{key}: value must be a string, a list of strings, or a boolean"
-            )
+    as_section = any(use.kind in ("open", "inverted") for use in uses)
+    if isinstance(value, bool):
+        if any(use.kind == "open" and use.dot for use in uses):
+            problems.append(f"{key}: a boolean section cannot use {{{{.}}}}")
+        if as_variable(uses):
+            problems.append(f"{key}: a boolean cannot be used as a variable")
+    elif isinstance(value, str):
+        if value == "":
+            problems.append(f"{key}: empty string")
+        if as_section:
+            problems.append(f"{key}: a string can be used only as a variable")
+    elif isinstance(value, list):
+        if not value and not any(use.kind == "inverted" for use in uses):
+            problems.append(f"{key}: empty list needs a {{{{^{key}}}}} section")
+        if as_variable(uses):
+            problems.append(f"{key}: a list cannot be used as a variable")
+        if any(use.kind == "open" and not use.dot for use in uses):
+            problems.append(f"{key}: every {{{{#{key}}}}} body must use {{{{.}}}}")
+        for index, item in enumerate(value):
+            if not isinstance(item, str):
+                problems.append(f"{key}[{index}]: list items must be strings")
+            elif item == "":
+                problems.append(f"{key}[{index}]: empty string")
+    else:
+        problems.append(
+            f"{key}: value must be a string, a list of strings, or a boolean"
+        )
     return problems
 
 
-def run(args):
-    out = Path(args.out)
-    problems = []
-    if os.path.lexists(out):
-        problems.append(f"out file exists: {out}")
+def read_values(path):
+    """Return (values, problems)."""
     try:
-        template = Template(Path(args.template))
-    except (OSError, UnicodeDecodeError) as error:
-        return problems + [f"cannot read template: {error}"], None
-    problems += template.problems
-    if args.fields:
-        content = {key: None for key in template.uses}
-        lines = []
-        for key in template.uses:
-            hint = template.hints[key]
-            lines.append(
-                f"{key} ({template.field_type(key)}):" + (f" {hint}" if hint else "")
-            )
-        output = json.dumps(content, indent=2) + "\n"
-        return problems, (output, "\n".join(lines))
-    try:
-        values = json.loads(Path(args.values).read_bytes().decode("utf-8"))
+        values = json.loads(read_utf8(path))
     except (OSError, ValueError) as error:
-        return problems + [f"cannot read values: {error}"], None
+        return None, [f"cannot read values: {error}"]
     if not isinstance(values, dict):
-        return problems + ["values must be a JSON object"], None
-    problems += check_values(template, values)
-    if problems:
-        return problems, None
-    escape = (
-        (lambda text: text) if args.no_escape or template.no_escape else html_escape
-    )
-    return problems, (render(template.text, values, template.partials, escape), "")
+        return None, ["values must be a JSON object"]
+    return values, []
 
 
 def main(argv=None):
@@ -420,16 +418,26 @@ def main(argv=None):
         parser.error("--fields cannot be used with --no-escape")
     if len(args.paths) != (2 if args.fields else 3):
         parser.error("wrong number of arguments")
-    if args.fields:
-        args.template, args.out = args.paths
-    else:
-        args.template, args.values, args.out = args.paths
-    problems, result = run(args)
+    template, out = Path(args.paths[0]), Path(args.paths[-1])
+    problems = [f"out file exists: {out}"] if os.path.lexists(out) else []
+    try:
+        scan = TemplateScan(template)
+    except (OSError, UnicodeDecodeError) as error:
+        scan = None
+        problems.append(f"cannot read template: {error}")
+    summary = ""
+    if scan:
+        problems += scan.problems
+        if args.fields:
+            output, summary = scan.skeleton()
+        else:
+            values, value_problems = read_values(Path(args.paths[1]))
+            problems += value_problems or scan.check(values)
+            if not problems:
+                output = scan.render(values, args.no_escape)
     if problems:
         print("\n".join(problems), file=sys.stderr)
         return 1
-    output, summary = result
-    out = Path(args.out)
     try:
         out.parent.mkdir(parents=True, exist_ok=True)
         with open(out, "x", encoding="utf-8", newline="") as handle:
