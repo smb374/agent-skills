@@ -5,7 +5,26 @@ interpolation, inverted, partials, sections). Lambdas, inheritance, and dynamic
 names are not supported. See PROVENANCE.md.
 """
 
+from typing import NamedTuple
+
 WHITESPACE = " \t"
+SIGILS = {
+    "#": "open",
+    "^": "inverted",
+    "/": "close",
+    "!": "comment",
+    ">": "partial",
+    "=": "delimiters",
+    "&": "raw",
+}
+STANDALONE_KINDS = ("open", "inverted", "close", "comment", "partial", "delimiters")
+
+
+class Node(NamedTuple):
+    kind: str
+    value: str
+    indent: str = ""
+    children: tuple | list = ()
 
 
 def html_escape(text):
@@ -22,7 +41,7 @@ def tokenize(template):
     """Yield (kind, value, indent) tokens.
 
     kind is one of text, var, raw, open, inverted, close, partial.
-    indent is the whitespace before a standalone partial tag, else "".
+    indent is the whitespace before a standalone tag, else "".
     """
     open_delim, close_delim = "{{", "}}"
     pos = 0
@@ -46,15 +65,14 @@ def tokenize(template):
         sigil = content[:1]
         if triple:
             kind, name = "raw", content[1:].strip()
-        elif sigil and sigil in "#^/!>=&":
-            kind, name = sigil, content[1:].strip()
+        elif sigil in SIGILS:
+            kind, name = SIGILS[sigil], content[1:].strip()
         else:
             kind, name = "var", content.strip()
 
         indent = ""
-        standalone_kinds = ("#", "^", "/", "!", ">", "=")
         text_end = start
-        if kind in standalone_kinds:
+        if kind in STANDALONE_KINDS:
             line_start = template.rfind("\n", 0, start) + 1
             before = template[line_start:start]
             line_end = template.find("\n", tag_end)
@@ -76,44 +94,33 @@ def tokenize(template):
             yield "text", template[pos:text_end], ""
         pos = last_tag_end = tag_end
 
-        if kind == "#":
-            yield "open", name, ""
-        elif kind == "^":
-            yield "inverted", name, ""
-        elif kind == "/":
-            yield "close", name, ""
-        elif kind == ">":
-            yield "partial", name, indent
-        elif kind in ("&", "raw"):
-            yield "raw", name, ""
-        elif kind == "var":
-            yield "var", name, ""
-        elif kind == "=":
+        if kind == "delimiters":
             parts = name.split()
             if len(parts) != 2:
                 raise ValueError("bad delimiter tag")
             open_delim, close_delim = parts
-        # "!" yields nothing.
+        elif kind != "comment":
+            yield kind, name, indent
     if pos < len(template):
         yield "text", template[pos:], ""
 
 
 def parse(template):
-    """Build a tree of (kind, value, extra) nodes. Sections hold a child list in extra."""
+    """Build a tree of Nodes. A section Node holds its child Nodes in children."""
     root = []
     stack = [("", root)]
     for kind, value, indent in tokenize(template):
         children = stack[-1][1]
         if kind in ("open", "inverted"):
-            node = (kind, value, [])
+            node = Node(kind, value, children=[])
             children.append(node)
-            stack.append((value, node[2]))
+            stack.append((value, node.children))
         elif kind == "close":
             if len(stack) == 1 or stack[-1][0] != value:
                 raise ValueError(f"unexpected closing tag: {value}")
             stack.pop()
         else:
-            children.append((kind, value, indent))
+            children.append(Node(kind, value, indent))
     if len(stack) > 1:
         raise ValueError(f"unclosed section: {stack[-1][0]}")
     return root
@@ -163,25 +170,27 @@ def indent_lines(text, indent):
 
 def render_nodes(nodes, contexts, partials, escape):
     out = []
-    for kind, value, extra in nodes:
-        if kind == "text":
-            out.append(value)
-        elif kind == "var":
-            out.append(escape(stringify(lookup(value, contexts))))
-        elif kind == "raw":
-            out.append(stringify(lookup(value, contexts)))
-        elif kind == "partial":
-            text = indent_lines(partials.get(value, ""), extra)
+    for node in nodes:
+        if node.kind == "text":
+            out.append(node.value)
+        elif node.kind == "var":
+            out.append(escape(stringify(lookup(node.value, contexts))))
+        elif node.kind == "raw":
+            out.append(stringify(lookup(node.value, contexts)))
+        elif node.kind == "partial":
+            text = indent_lines(partials.get(node.value, ""), node.indent)
             out.append(render_nodes(parse(text), contexts, partials, escape))
         else:
-            found = lookup(value, contexts)
-            if kind == "inverted":
+            found = lookup(node.value, contexts)
+            if node.kind == "inverted":
                 if is_falsey(found):
-                    out.append(render_nodes(extra, contexts, partials, escape))
+                    out.append(render_nodes(node.children, contexts, partials, escape))
             elif not is_falsey(found):
                 items = found if isinstance(found, list) else [found]
                 for item in items:
-                    out.append(render_nodes(extra, contexts + [item], partials, escape))
+                    out.append(
+                        render_nodes(node.children, contexts + [item], partials, escape)
+                    )
     return "".join(out)
 
 
