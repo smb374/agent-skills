@@ -32,7 +32,7 @@ This file is the list of skills that this repo installs or plans to install. It 
 | 1 Intake | Interview entry points | `grill-me`, `grill-with-docs` | flow | mattpocock/skills | vendor |
 | 1 Intake | Glossary and ADRs | `domain-modeling` | knowledge | mattpocock/skills | vendor |
 | 1 Intake | Spec, then tickets | `to-spec`, `to-tickets` | flow | mattpocock/skills. Point them at `setup-project`. | done |
-| 2 Tickets | Scout, brief, worker, verify, review, commit | `implement-flow`, `implement-spec-flow`, `plan-ticket-impl`, `agent-handoff` | flow | Pi config repo | pi-config |
+| 2 Tickets | Scout, brief, worker, verify, review, commit | `implement-flow`, `implement-spec-flow`, `plan-ticket-impl` | flow | Pi config repo | pi-config |
 | 2 Tickets | Code writing | `tdd`, `diagnosing-bugs`, `codebase-design` | knowledge | mattpocock/skills | vendor |
 | 3 PR | Find the target issue and its sub-issues. Else ask the user, or use the branch commits | A step in `pr-writer`, with `gh` commands | — | Own | done |
 | 3 PR | PR body | `pr-writer` | knowledge, started by the user or another flow | getsentry/skills (Apache-2.0). Change it to Conventional Commits titles. | done |
@@ -48,6 +48,7 @@ This file is the list of skills that this repo installs or plans to install. It 
 | --- | --- | --- | --- | --- |
 | Writing and coding style | `asd-ste100` | knowledge | danyuchn/asd-ste100-skill (MIT). Narrow the description: it rewrites given text, and `writing-agent-docs` writes whole agent documents. | done |
 | Writing and coding style | `ponytail` | knowledge | DietrichGebert/ponytail @ `96608e0` (MIT), with the Pi config changes | done |
+| Agent handoff | `handoff` | knowledge | Own, derived from mattpocock/skills `handoff` (MIT). Ships the session template and `fill`. | done |
 | Misc | `teach` | flow | mattpocock/skills | vendor |
 | Misc | `research` | knowledge | mattpocock/skills. Add a fallback for a harness with no subagent tool. | done |
 | Misc | `wait-what` | flow | mattpocock/skills | vendor |
@@ -59,7 +60,8 @@ ask-matt, code-review, feature-plan, find-skills, handoff, implement, implement-
 - `feature-plan` duplicates `to-spec` and `plan-ticket-impl`.
 - `code-review` duplicates the review in `pr-review` and `implement-flow`.
 - `writing-for-agents` splits into `skill-writer` (skills) and `writing-agent-docs` (other agent documents).
-- The Pi flows and agents replace `implement`, `implement-spec`, and `handoff`.
+- The Pi flows and agents replace `implement` and `implement-spec`.
+- The own `handoff` replaces upstream `handoff`.
 
 ## Open decisions
 

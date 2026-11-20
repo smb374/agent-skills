@@ -112,6 +112,7 @@ class InstallTest(unittest.TestCase):
         for name in SKILLS:
             self.assertTrue((self.dir / name / "SKILL.md").is_file())
             self.assertFalse((self.dir / name).is_symlink())
+        self.assertTrue((self.dir / "handoff" / "scripts" / "fill.py").is_file())
 
     def test_default_downloads_with_curl(self):
         result = self.run_install("--no-vendor")
