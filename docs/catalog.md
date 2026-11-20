@@ -48,6 +48,7 @@ This file is the list of skills that this repo installs or plans to install. It 
 | --- | --- | --- | --- | --- |
 | Writing and coding style | `asd-ste100` | knowledge | danyuchn/asd-ste100-skill (MIT). Narrow the description: it rewrites given text, and `writing-agent-docs` writes whole agent documents. | done |
 | Writing and coding style | `ponytail` | knowledge | DietrichGebert/ponytail @ `96608e0` (MIT), with the Pi config changes | done |
+| Code graph | `codebase-memory` | knowledge | Own, ported from the Pi config skill. It names the `codebase-memory-mcp` tools by their MCP names. | done |
 | Agent handoff | `handoff` | knowledge | Own, derived from mattpocock/skills `handoff` (MIT). Ships the session template and `fill`. | done |
 | Misc | `teach` | flow | mattpocock/skills | vendor |
 | Misc | `research` | knowledge | mattpocock/skills. Add a fallback for a harness with no subagent tool. | done |

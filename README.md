@@ -26,6 +26,8 @@ Or run `./install.sh --src .` in a clone. The script needs a POSIX shell, curl o
 
 The script does not replace a target that exists. It prints `skip:` with the path, and exits 1 at the end. Any other flag exits 2 with the usage line.
 
+The `codebase-memory-mcp` installer can also write a skill named `codebase-memory` to `~/.agents/skills/`. When that skill exists, this script skips it. To install this copy over it, use `--force`.
+
 ## Devshell
 
 The recipes need the tools of the devshell. Enter the devshell with `direnv allow`, or run `nix develop`.
