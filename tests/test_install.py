@@ -53,7 +53,7 @@ class InstallTest(unittest.TestCase):
         # The vendor list of the tarball differs from the repo's, so a test can tell which one is read.
         (self.tmp / "vendor.txt").write_text(ARCHIVE_VENDOR)
         with tarfile.open(self.archive, "w:gz") as tar:
-            for name in ("install.sh", "skills"):
+            for name in ("install.sh", "skills", "fill"):
                 tar.add(
                     ROOT / name,
                     arcname=f"agent-skills-main/{name}",
@@ -206,6 +206,30 @@ class InstallTest(unittest.TestCase):
     def test_no_vendor_skips_npx(self):
         self.run_install("--src", str(ROOT), "--no-vendor")
         self.assertFalse(self.npx_log.exists())
+
+    def fill_tree(self):
+        """A source tree with the listed skill `handoff`, one unlisted skill, and fill."""
+        tree = self.tmp / "tree"
+        for name in ("handoff", "other"):
+            (tree / "skills" / name).mkdir(parents=True)
+            (tree / "skills" / name / "SKILL.md").write_text(name)
+        (tree / "fill").mkdir()
+        (tree / "fill" / "fill.py").write_text("# fill\n")
+        return tree
+
+    def test_listed_skill_gets_fill(self):
+        result = self.run_install("--src", str(self.fill_tree()), "--no-vendor")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        fill = self.dir / "handoff" / "scripts" / "fill.py"
+        self.assertEqual(fill.read_text(), "# fill\n")
+        self.assertFalse((self.dir / "other" / "scripts").exists())
+
+    def test_skipped_skill_gets_no_fill(self):
+        (self.dir / "handoff").mkdir(parents=True)
+        result = self.run_install("--src", str(self.fill_tree()), "--no-vendor")
+        self.assertEqual(result.returncode, 1)
+        self.assertIn(f"skip: {self.dir / 'handoff'}", result.stdout)
+        self.assertFalse((self.dir / "handoff" / "scripts").exists())
 
 
 class DocsTest(unittest.TestCase):

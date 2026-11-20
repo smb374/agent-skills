@@ -2,6 +2,9 @@
 # Copy the skills of this repo into a skills directory, then add the upstream skills in vendor.txt.
 set -eu
 
+# Each of these skills gets a copy of fill/fill.py as scripts/fill.py.
+fill_skills="handoff"
+
 usage() {
     echo "usage: install.sh [--src DIR] [--dir DIR] [--agent AGENT] [--no-vendor] [--force]" >&2
     exit 2
@@ -58,7 +61,8 @@ status=0
 mkdir -p "$dir"
 for skill in "$src"/skills/*/; do
     skill=${skill%/}
-    target="$dir/$(basename "$skill")"
+    name=$(basename "$skill")
+    target="$dir/$name"
     if [ -e "$target" ] || [ -L "$target" ]; then
         if [ "$force" = 1 ]; then
             rm -rf "$target"
@@ -69,6 +73,12 @@ for skill in "$src"/skills/*/; do
         fi
     fi
     cp -R "$skill" "$target"
+    case " $fill_skills " in
+    *" $name "*)
+        mkdir -p "$target/scripts"
+        cp "$src/fill/fill.py" "$target/scripts/fill.py"
+        ;;
+    esac
     echo "install: $target"
 done
 
