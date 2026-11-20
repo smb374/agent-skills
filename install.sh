@@ -38,19 +38,16 @@ done
 
 if [ -z "$src" ]; then
     url=https://github.com/smb374/agent-skills/archive/refs/heads/main.tar.gz
+    tmp=$(mktemp -d)
+    trap 'rm -rf "$tmp"' EXIT
     if command -v curl >/dev/null; then
-        download="curl -fsSL -o"
+        curl -fsSL -o "$tmp/main.tar.gz" "$url"
     elif command -v wget >/dev/null; then
-        download="wget -q -O"
+        wget -q -O "$tmp/main.tar.gz" "$url"
     else
         echo "error: curl and wget not found; install one, or pass --src DIR" >&2
         exit 1
     fi
-    tmp=$(mktemp -d)
-    trap 'rm -rf "$tmp"' EXIT
-    # $download is a command and its output flag.
-    # shellcheck disable=SC2086
-    $download "$tmp/main.tar.gz" "$url"
     mkdir "$tmp/src"
     tar -xzf "$tmp/main.tar.gz" -C "$tmp/src" --strip-components=1
     src=$tmp/src

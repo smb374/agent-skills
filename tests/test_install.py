@@ -1,6 +1,7 @@
 """Tests for install.sh. Fake npx, curl, and wget put the download and the vendor calls offline."""
 
 import os
+import re
 import shutil
 import subprocess
 import tarfile
@@ -20,7 +21,6 @@ TOOLS = (
     "rm",
     "mkdir",
     "grep",
-    "dirname",
     "basename",
     "cat",
 )
@@ -206,6 +206,16 @@ class InstallTest(unittest.TestCase):
     def test_no_vendor_skips_npx(self):
         self.run_install("--src", str(ROOT), "--no-vendor")
         self.assertFalse(self.npx_log.exists())
+
+
+class DocsTest(unittest.TestCase):
+    def test_docs_install_commands_pass_src(self):
+        # A bare ./install.sh installs the downloaded main, not the clone.
+        for doc in ("README.md", "CONTRIBUTING.md"):
+            lines = (ROOT / doc).read_text().splitlines()
+            for number, line in enumerate(lines, 1):
+                for command in re.findall(r"\./install\.sh[^`\n]*", line):
+                    self.assertIn("--src", command, f"{doc}:{number}: {line}")
 
 
 if __name__ == "__main__":
