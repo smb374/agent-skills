@@ -360,6 +360,20 @@ class FillCliTest(unittest.TestCase):
         result = self.fill("--fields", self.template(text), self.out)
         self.assertEqual(result.stdout.splitlines(), ["items (list):", "x (bool):"])
 
+    def test_problems_in_document_order(self):
+        self.template("{{.}}\n" + PRAGMA, "row.md")
+        text = "{{#items}}{{user.name}}{{> row.md}}{{> nope.md}}{{/items}}"
+        lines = (
+            "dotted tag name not allowed: user.name",
+            f"partial row.md: line 2: '{PRAGMA}' is allowed only on line 1 of the"
+            " top template",
+            "partial not found: nope.md",
+        )
+        data = {"items": ["a"], "user.name": "x"}
+        self.assert_problems(self.render(text, data), *lines)
+        result = self.fill("--fields", self.template(text), self.out)
+        self.assert_problems(result, *lines)
+
 
 if __name__ == "__main__":
     unittest.main()
