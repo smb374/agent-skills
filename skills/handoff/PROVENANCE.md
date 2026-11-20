@@ -36,7 +36,7 @@
 
 | Dimension | Status | Next retrieval action |
 | --- | --- | --- |
-| baseline runs with and without the skill | partial: 1 run per arm on 2026-11-20 with `claude-haiku-5-5`. Baseline 1/7 checks (no brief file), skill 6/7 (`workspace-unchanged` failed from a locale sort in the check, now fixed) | run `just eval handoff --runs 3` before a material change |
+| baseline runs with and without the skill | partial: 2 suites of 1 run per arm on 2026-11-20 with `claude-haiku-5-5`. Last suite: baseline 2/8 checks (no brief file), skill 8/8 | run `just eval handoff --runs 3` before a material change |
 | trigger check with near-miss queries | missing | run the trigger loop of skill-writer when a trigger failure shows |
 
 ## Local changes
