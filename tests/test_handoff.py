@@ -67,6 +67,12 @@ class SessionTemplateTest(unittest.TestCase):
         self.assertIn("## Goal\n\na & <b>\n", brief)
         self.assertIn("## Done when\n\n- <b>x</b>\n", brief)
         self.assertNotIn("{{", brief)
+        self.assertTrue(
+            brief.endswith(
+                "\nBefore you start, load the `handoff` skill, and follow its rules"
+                " to receive a handoff.\n"
+            )
+        )
 
     def test_optional_lists_render_none(self):
         out = self.dir / "brief.md"

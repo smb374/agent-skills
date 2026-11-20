@@ -238,7 +238,8 @@ CHECKS = {
 }
 
 
-def run_one(skill, case, arm, n, out, env):
+def run_one(skill_dir, case, arm, n, out, env):
+    skill = skill_dir.name
     run_dir = out / case["id"] / f"{arm}-{n}"
     run_dir.mkdir(parents=True)
     result = {
@@ -256,13 +257,19 @@ def run_one(skill, case, arm, n, out, env):
         agent_dir = Path(tmp) / "agent"
         shutil.copytree(ROOT / "evals" / skill / case["fixture"], workdir)
         shutil.copytree(ROOT / "evals" / "pi-agent", agent_dir)
-        run_env = {**env, "PI_CODING_AGENT_DIR": str(agent_dir)}
+        # The skill tells the agent to write to TMPDIR; inside the workdir, checks see it.
+        (workdir / ".tmp").mkdir()
+        run_env = {
+            **env,
+            "PI_CODING_AGENT_DIR": str(agent_dir),
+            "TMPDIR": str(workdir / ".tmp"),
+        }
         tools = TOOLS + (",bash" if case.get("bash") else "")
         # --no-skills drops discovered skills such as ~/.agents/skills; --skill still loads.
         arm_args = ["--no-skills"]
         prompt = case["prompt"]
         if arm == "skill":
-            arm_args += ["--skill", str(ROOT / "skills" / skill)]
+            arm_args += ["--skill", str(skill_dir)]
             # Force the load, so the arm measures the skill body, not its trigger.
             prompt = f"/skill:{skill} {prompt}"
         try:
@@ -354,6 +361,16 @@ def summarize(skill, cases, results, env, runs):
     return "\n".join(lines)
 
 
+def install_skills(target):
+    proc = subprocess.run(
+        [ROOT / "install.sh", "--src", ROOT, "--dir", target, "--no-vendor"],
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0:
+        raise EvalError(f"install.sh exited {proc.returncode}: {proc.stderr.strip()}")
+
+
 def settings():
     env = dict(os.environ)
     env["PI_BIN"] = env.get("PI_BIN") or "pi-bolt"
@@ -423,16 +440,24 @@ def main(argv=None):
     jobs = [(c, arm, n) for c in cases for arm in ARMS for n in range(1, args.runs + 1)]
     progress = Progress(out / "progress.log", len(jobs))
     progress.log(f"start: {len(jobs)} runs, {args.jobs} at a time, results in {out}")
+    # The skill arm loads the installed copy: install.sh adds files, such as fill.py.
+    with tempfile.TemporaryDirectory() as tmp:
+        installed = Path(tmp) / "skills"
+        try:
+            install_skills(installed)
+        except EvalError as e:
+            print(f"error: {e}", file=sys.stderr)
+            return 1
 
-    def job(case, arm, n):
-        progress.log(f"run   {case['id']} {arm}-{n}")
-        start = time.monotonic()
-        r = run_one(args.skill, case, arm, n, out, env)
-        progress.done(r, time.monotonic() - start)
-        return r
+        def job(case, arm, n):
+            progress.log(f"run   {case['id']} {arm}-{n}")
+            start = time.monotonic()
+            r = run_one(installed / args.skill, case, arm, n, out, env)
+            progress.done(r, time.monotonic() - start)
+            return r
 
-    with ThreadPoolExecutor(max_workers=args.jobs) as pool:
-        results = list(pool.map(lambda j: job(*j), jobs))
+        with ThreadPoolExecutor(max_workers=args.jobs) as pool:
+            results = list(pool.map(lambda j: job(*j), jobs))
     (out / "verdicts.json").write_text(json.dumps(results, indent=2))
     summary = summarize(args.skill, cases, results, env, args.runs)
     (out / "summary.md").write_text(summary)
