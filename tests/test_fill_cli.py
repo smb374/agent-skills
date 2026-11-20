@@ -39,12 +39,16 @@ class FillCliTest(unittest.TestCase):
         args = (*flags, self.template(text), self.values(data), self.out)
         return self.fill(*args, timeout=timeout)
 
-    def assert_problem(self, result, *names):
+    def assert_problems(self, result, *lines):
         self.assertEqual(result.returncode, 1, result.stderr)
         self.assertEqual(result.stdout, "")
-        for name in names:
-            self.assertIn(name, result.stderr)
+        self.assertEqual(result.stderr.splitlines(), list(lines))
         self.assertFalse(self.out.exists())
+
+    def assert_out_exists_problem(self, result):
+        self.assertEqual(result.returncode, 1, result.stderr)
+        self.assertEqual(result.stderr.splitlines(), [f"out file exists: {self.out}"])
+        self.assertEqual(self.out.read_text(), "old")
 
     def assert_rendered(self, result, expected):
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -67,11 +71,18 @@ class FillCliTest(unittest.TestCase):
 
     def test_pragma_elsewhere(self):
         result = self.render("a\n" + PRAGMA + "\n{{v}}", {"v": "x"})
-        self.assert_problem(result, "fill: no-escape")
+        self.assert_problems(
+            result,
+            f"template: line 2: '{PRAGMA}' is allowed only on line 1 of the top template",
+        )
 
     def test_pragma_in_partial(self):
         self.template(PRAGMA + "\n{{v}}", "part.md")
-        self.assert_problem(self.render("{{> part.md}}", {"v": "x"}), "fill: no-escape")
+        self.assert_problems(
+            self.render("{{> part.md}}", {"v": "x"}),
+            f"partial part.md: line 1: '{PRAGMA}' is allowed only on line 1 of the"
+            " top template",
+        )
 
     def test_partial_escape_follows_top(self):
         self.template("{{v}}", "part.md")
@@ -86,39 +97,62 @@ class FillCliTest(unittest.TestCase):
         self.assert_rendered(result, "[x]")
 
     def test_missing_partial(self):
-        self.assert_problem(self.render("{{> nope.md}}", {}), "nope.md")
+        self.assert_problems(
+            self.render("{{> nope.md}}", {}), "partial not found: nope.md"
+        )
 
     def test_missing_key(self):
-        self.assert_problem(self.render("{{a}}", {}), "a")
+        self.assert_problems(self.render("{{name}}", {}), "missing key in values: name")
 
     def test_unknown_key(self):
-        self.assert_problem(self.render("{{a}}", {"a": "x", "b": "y"}), "b")
+        self.assert_problems(
+            self.render("{{name}}", {"name": "x", "extra": "y"}),
+            "unknown key (no tag uses it): extra",
+        )
 
     def test_missing_section_key(self):
-        self.assert_problem(self.render("{{#items}}{{.}}{{/items}}", {}), "items")
+        self.assert_problems(
+            self.render("{{#items}}{{.}}{{/items}}", {}),
+            "missing key in values: items",
+        )
 
     def test_missing_inverted_key(self):
-        self.assert_problem(self.render("{{^x}}none{{/x}}", {}), "x")
+        self.assert_problems(
+            self.render("{{^empty}}none{{/empty}}", {}),
+            "missing key in values: empty",
+        )
 
     def test_dot_exempt(self):
         result = self.render("{{#items}}- {{.}}\n{{/items}}", {"items": ["a", "b"]})
         self.assert_rendered(result, "- a\n- b\n")
 
     def test_string_as_section(self):
-        self.assert_problem(self.render("{{#a}}x{{/a}}", {"a": "s"}), "a")
+        self.assert_problems(
+            self.render("{{#title}}x{{/title}}", {"title": "s"}),
+            "title: a string can be used only as a variable",
+        )
 
     def test_list_as_variable(self):
-        self.assert_problem(self.render("{{a}}", {"a": ["s"]}), "a")
+        self.assert_problems(
+            self.render("{{items}}", {"items": ["s"]}),
+            "items: a list cannot be used as a variable",
+        )
 
     def test_list_section_without_dot(self):
-        self.assert_problem(self.render("{{#a}}x{{/a}}", {"a": ["s"]}), "a")
+        self.assert_problems(
+            self.render("{{#items}}x{{/items}}", {"items": ["s"]}),
+            "items: every {{#items}} body must use {{.}}",
+        )
 
     def test_list_non_string_item(self):
-        result = self.render("{{#a}}{{.}}{{/a}}", {"a": ["a", 1]})
-        self.assert_problem(result, "a", "1")
+        result = self.render("{{#items}}{{.}}{{/items}}", {"items": ["a", 1]})
+        self.assert_problems(result, "items[1]: list items must be strings")
 
     def test_bool_as_variable(self):
-        self.assert_problem(self.render("{{a}}", {"a": True}), "a")
+        self.assert_problems(
+            self.render("{{flag}}", {"flag": True}),
+            "flag: a boolean cannot be used as a variable",
+        )
 
     def test_bool_section(self):
         text = "{{#a}}yes{{/a}}{{^a}}no{{/a}}"
@@ -126,25 +160,34 @@ class FillCliTest(unittest.TestCase):
         self.out.unlink()
         self.assert_rendered(self.render(text, {"a": False}), "no")
 
+    def assert_bad_type(self, value):
+        self.assert_problems(
+            self.render("{{title}}", {"title": value}),
+            "title: value must be a string, a list of strings, or a boolean",
+        )
+
     def test_null_value(self):
-        self.assert_problem(self.render("{{a}}", {"a": None}), "a")
+        self.assert_bad_type(None)
 
     def test_number_value(self):
-        self.assert_problem(self.render("{{a}}", {"a": 1}), "a")
+        self.assert_bad_type(1)
 
     def test_object_value(self):
-        self.assert_problem(self.render("{{a}}", {"a": {}}), "a")
+        self.assert_bad_type({})
 
     def test_empty_string(self):
-        self.assert_problem(self.render("{{a}}", {"a": ""}), "a")
+        self.assert_problems(
+            self.render("{{title}}", {"title": ""}), "title: empty string"
+        )
 
     def test_empty_string_in_list(self):
-        result = self.render("{{#a}}{{.}}{{/a}}", {"a": ["a", ""]})
-        self.assert_problem(result, "a", "1")
+        result = self.render("{{#items}}{{.}}{{/items}}", {"items": ["a", ""]})
+        self.assert_problems(result, "items[1]: empty string")
 
     def test_empty_list_without_inverted(self):
-        self.assert_problem(
-            self.render("{{#items}}{{.}}{{/items}}", {"items": []}), "items"
+        self.assert_problems(
+            self.render("{{#items}}{{.}}{{/items}}", {"items": []}),
+            "items: empty list needs a {{^items}} section",
         )
 
     def test_empty_list_with_inverted(self):
@@ -153,9 +196,7 @@ class FillCliTest(unittest.TestCase):
 
     def test_existing_out_file(self):
         self.out.write_text("old")
-        result = self.render("x", {})
-        self.assertEqual(result.returncode, 1)
-        self.assertEqual(self.out.read_text(), "old")
+        self.assert_out_exists_problem(self.render("x", {}))
 
     def test_creates_parent_dirs(self):
         out = self.dir / "a" / "b" / "out.md"
@@ -186,13 +227,17 @@ class FillCliTest(unittest.TestCase):
 
     def test_fields_existing_out_file(self):
         self.out.write_text("old")
-        result = self.fill("--fields", self.template("{{a}}"), self.out)
-        self.assertEqual(result.returncode, 1)
-        self.assertEqual(self.out.read_text(), "old")
+        result = self.fill("--fields", self.template("{{title}}"), self.out)
+        self.assert_out_exists_problem(result)
 
     def test_all_problems_listed(self):
-        result = self.render("{{a}}{{c}}", {"b": "x", "c": ""})
-        self.assert_problem(result, "a", "b", "c")
+        result = self.render("{{title}}{{name}}", {"extra": "x", "name": ""})
+        self.assert_problems(
+            result,
+            "missing key in values: title",
+            "unknown key (no tag uses it): extra",
+            "name: empty string",
+        )
 
     def test_usage_exit_2(self):
         self.assertEqual(self.fill().returncode, 2)
@@ -200,10 +245,13 @@ class FillCliTest(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
 
     def test_bad_json_values(self):
-        self.assert_problem(self.render("x", "not json"))
+        self.assert_problems(
+            self.render("x", "not json"),
+            "cannot read values: Expecting value: line 1 column 1 (char 0)",
+        )
 
     def test_values_not_object(self):
-        self.assert_problem(self.render("x", []))
+        self.assert_problems(self.render("x", []), "values must be a JSON object")
 
     def test_fields_with_no_escape_usage(self):
         result = self.fill("--fields", "--no-escape", self.template("{{a}}"), self.out)
@@ -216,18 +264,17 @@ class FillCliTest(unittest.TestCase):
         self.assert_rendered(result, "[x]")
 
     def test_fields_recursive_partial(self):
-        self.template("{{a}}{{> a.md}}", "a.md")
+        self.template("{{name}}{{> a.md}}", "a.md")
         result = self.fill(
             "--fields", self.template("{{> a.md}}"), self.out, timeout=10
         )
-        self.assert_problem(result, "recursive partial: a.md")
+        self.assert_problems(result, "recursive partial: a.md")
 
     def test_render_recursive_partial(self):
-        self.template("{{a}}{{> b.md}}", "a.md")
+        self.template("{{name}}{{> b.md}}", "a.md")
         self.template("{{> a.md}}", "b.md")
-        result = self.render("{{> a.md}}", {"a": "x"}, timeout=10)
-        self.assert_problem(result, "recursive partial: a.md")
-        self.assertEqual(len(result.stderr.splitlines()), 1)
+        result = self.render("{{> a.md}}", {"name": "x"}, timeout=10)
+        self.assert_problems(result, "recursive partial: a.md")
 
     def test_dot_in_partial_counts_for_section(self):
         self.template("- {{.}}\n", "row.md")
@@ -238,9 +285,8 @@ class FillCliTest(unittest.TestCase):
         self.assertEqual(result.stdout.splitlines(), ["items (list):"])
 
     def test_template_error_no_unknown_key_problem(self):
-        result = self.render("{{#a}}x", {"a": True})
-        self.assert_problem(result, "unclosed section")
-        self.assertEqual(len(result.stderr.splitlines()), 1)
+        result = self.render("{{#flag}}x", {"flag": True})
+        self.assert_problems(result, "template: template error: unclosed section: flag")
 
     def test_fields_hint_stops_at_comment_end(self):
         result = self.fill(
@@ -255,20 +301,30 @@ class FillCliTest(unittest.TestCase):
         self.assertEqual(result.stdout.splitlines(), ["title (string):"])
 
     def test_dotted_name(self):
-        self.assert_problem(self.render("{{a.b}}", {"a.b": "x"}), "a.b")
+        self.assert_problems(
+            self.render("{{user.name}}", {"user.name": "x"}),
+            "dotted tag name not allowed: user.name",
+        )
 
     def test_dot_outside_list_section(self):
-        self.assert_problem(
-            self.render("{{^items}}{{.}}{{/items}}", {"items": []}), "."
+        self.assert_problems(
+            self.render("{{^items}}{{.}}{{/items}}", {"items": []}),
+            "{{.}} must be inside a {{#key}} list section",
         )
-        self.assert_problem(self.render("{{#flag}}{{.}}{{/flag}}", {"flag": True}), ".")
+        self.assert_problems(
+            self.render("{{#flag}}{{.}}{{/flag}}", {"flag": True}),
+            "flag: a boolean section cannot use {{.}}",
+        )
 
     def test_out_path_blocked_by_file(self):
         (self.dir / "f").write_text("x")
-        result = self.fill(self.template("x"), self.values({}), self.dir / "f" / "x.md")
+        out = self.dir / "f" / "x.md"
+        result = self.fill(self.template("x"), self.values({}), out)
         self.assertEqual(result.returncode, 1)
-        self.assertEqual(len(result.stderr.splitlines()), 1)
-        self.assertNotIn("Traceback", result.stderr)
+        lines = result.stderr.splitlines()
+        self.assertEqual(len(lines), 1, result.stderr)
+        # The OS error text after the prefix differs by platform.
+        self.assertTrue(lines[0].startswith(f"cannot write {out}: "), lines[0])
 
     def test_fields_partial_and_inverted(self):
         self.template("{{#items}}{{.}}{{/items}}", "p.md")
