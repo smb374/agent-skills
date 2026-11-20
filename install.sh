@@ -1,20 +1,24 @@
 #!/bin/sh
-# Put the skills of this repo into a skills directory, then add the upstream skills in vendor.txt.
+# Copy the skills of this repo into a skills directory, then add the upstream skills in vendor.txt.
 set -eu
 
 usage() {
-    echo "usage: install.sh [--link | --copy] [--dir DIR] [--agent AGENT] [--no-vendor]" >&2
+    echo "usage: install.sh [--src DIR] [--dir DIR] [--agent AGENT] [--no-vendor] [--force]" >&2
     exit 2
 }
 
-mode="link"
+src=
 dir="$HOME/.agents/skills"
 agent=pi
 vendor=1
+force=0
 while [ $# -gt 0 ]; do
     case $1 in
-    --link) mode="link" ;;
-    --copy) mode="copy" ;;
+    --src)
+        [ $# -ge 2 ] || usage
+        src=$2
+        shift
+        ;;
     --dir)
         [ $# -ge 2 ] || usage
         dir=$2
@@ -26,34 +30,49 @@ while [ $# -gt 0 ]; do
         shift
         ;;
     --no-vendor) vendor=0 ;;
+    --force) force=1 ;;
     *) usage ;;
     esac
     shift
 done
 
-root=$(cd "$(dirname "$0")" && pwd)
+if [ -z "$src" ]; then
+    url=https://github.com/smb374/agent-skills/archive/refs/heads/main.tar.gz
+    if command -v curl >/dev/null; then
+        download="curl -fsSL -o"
+    elif command -v wget >/dev/null; then
+        download="wget -q -O"
+    else
+        echo "error: curl and wget not found; install one, or pass --src DIR" >&2
+        exit 1
+    fi
+    tmp=$(mktemp -d)
+    trap 'rm -rf "$tmp"' EXIT
+    # $download is a command and its output flag.
+    # shellcheck disable=SC2086
+    $download "$tmp/main.tar.gz" "$url"
+    mkdir "$tmp/src"
+    tar -xzf "$tmp/main.tar.gz" -C "$tmp/src" --strip-components=1
+    src=$tmp/src
+fi
+
 status=0
 
 mkdir -p "$dir"
-for src in "$root"/skills/*/; do
-    src=${src%/}
-    target="$dir/$(basename "$src")"
-    if [ "$mode" = link ] && [ -L "$target" ] && [ "$(readlink "$target")" = "$src" ]; then
-        echo "linked: $target"
-        continue
-    fi
+for skill in "$src"/skills/*/; do
+    skill=${skill%/}
+    target="$dir/$(basename "$skill")"
     if [ -e "$target" ] || [ -L "$target" ]; then
-        echo "skip: $target exists"
-        status=1
-        continue
+        if [ "$force" = 1 ]; then
+            rm -rf "$target"
+        else
+            echo "skip: $target"
+            status=1
+            continue
+        fi
     fi
-    if [ "$mode" = copy ]; then
-        cp -R "$src" "$target"
-        echo "install: $target"
-    else
-        ln -s "$src" "$target"
-        echo "link: $target -> $src"
-    fi
+    cp -R "$skill" "$target"
+    echo "install: $target"
 done
 
 if [ "$vendor" = 1 ]; then
@@ -62,7 +81,7 @@ if [ "$vendor" = 1 ]; then
         exit 1
     }
     # npx picks the directory from --agent, not from --dir.
-    grep -v -e '^#' -e '^[[:space:]]*$' "$root/vendor.txt" | while read -r repo skills; do
+    grep -v -e '^#' -e '^[[:space:]]*$' "$src/vendor.txt" | while read -r repo skills; do
         # shellcheck disable=SC2086 # $skills is a space-separated list of names.
         npx --yes skills add "$repo" --global --agent "$agent" --skill $skills --yes </dev/null
     done

@@ -16,7 +16,7 @@ Do not fork a skill only to pin its version. Fork it when you change its text.
 
 1. Add the skill name to the line of its repo in `vendor.txt`. For a new repo, add a line: `<owner>/<repo> <skill> [skill ...]`.
 2. Set its status to `vendor` in `docs/catalog.md`.
-3. Run `./install.sh` to install it.
+3. Run `just install` to install it.
 
 ## Fork a skill
 

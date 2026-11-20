@@ -28,16 +28,12 @@ check:
     ruff format --check .
     nixfmt --check flake.nix
     just test
-    for d in skills/*/; do python3 skills/skill-writer/scripts/quick_validate.py "$d" || exit 1; done
+    d=$(mktemp -d) && trap 'rm -rf "$d"' EXIT && ./install.sh --src . --dir "$d" --no-vendor && for s in "$d"/*/; do python3 skills/skill-writer/scripts/quick_validate.py "$s" || exit 1; done
     ! grep -rnF --exclude=portability.md --exclude=PROVENANCE.md -e 'Skill tool' -e 'setup-matt-pocock-skills' -e '${CLAUDE_SKILL_DIR}' -e '$ARGUMENTS' skills/
 
-# Copy the skills, then add the vendor skills. Pass install.sh flags, for example `--dir DIR --no-vendor`.
+# Copy the skills of this repo, then add the vendor skills. Pass install.sh flags, for example `--dir DIR --no-vendor`.
 install *args:
-    ./install.sh --copy {{args}}
-
-# Link the skills, then add the vendor skills. Pass install.sh flags, for example `--dir DIR --no-vendor`.
-link *args:
-    ./install.sh --link {{args}}
+    ./install.sh --src . {{args}}
 
 # Run the eval cases of one skill with headless pi. Costs money. Pass run.py flags, for example `--runs 1 --case brief`.
 eval skill *args:
