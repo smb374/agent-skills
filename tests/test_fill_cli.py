@@ -302,7 +302,7 @@ class FillCliTest(unittest.TestCase):
         self.assert_rendered(self.render(text, data), "a")
         self.out.unlink()
         result = self.fill("--fields", self.template(text), self.out)
-        self.assertEqual(result.stdout.splitlines(), ["items (list):", "x (list):"])
+        self.assertEqual(result.stdout.splitlines(), ["items (list):", "x (bool):"])
 
 
 if __name__ == "__main__":

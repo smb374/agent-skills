@@ -298,9 +298,7 @@ class Template:
                         self.problems.append(f"dotted tag name not allowed: {key}")
                     if key not in self.uses:
                         self.hints[key] = hint_before(text, node.offset)
-                    dot = node.kind in ("open", "inverted") and self.has_dot(
-                        node.children
-                    )
+                    dot = node.kind == "open" and self.has_dot(node.children)
                     self.uses.setdefault(key, []).append((node.kind, dot))
                 self.walk_nodes(node.children, text, [*sections, node.kind])
 
