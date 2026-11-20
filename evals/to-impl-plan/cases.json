@@ -1,0 +1,55 @@
+[
+  {
+    "id": "stages",
+    "fixture": "fixtures/stages",
+    "prompt": "Write an implementation plan for tickets/12-export.md. I confirm the stages, seams, and tests that you propose, so do not wait for me.",
+    "bash": true,
+    "checks": [
+      {
+        "id": "plan-in-tmpdir",
+        "type": "command",
+        "run": "ls .tmp/*.md"
+      },
+      {
+        "id": "values-file",
+        "type": "command",
+        "run": "ls .tmp/*.json"
+      },
+      {
+        "id": "template-used",
+        "type": "command",
+        "run": "grep -q '^Before you start, load the `handoff` skill' .tmp/*.md && grep -q '^## Builder contract' .tmp/*.md"
+      },
+      {
+        "id": "all-headings",
+        "type": "command",
+        "run": "f=$(ls .tmp/*.md | head -n 1) && for h in Ticket 'Current state' 'Out of scope' 'Common verification commands' 'Behavior specification' 'Rules / constraints' Stages 'Open questions' Report; do grep -q \"^## $h\" \"$f\" || exit 1; done"
+      },
+      {
+        "id": "two-stages",
+        "type": "command",
+        "run": "f=$(ls .tmp/*.md | head -n 1) && [ \"$(grep -c '^### Stage ' \"$f\")\" -ge 2 ]"
+      },
+      {
+        "id": "stage-subsections",
+        "type": "command",
+        "run": "f=$(ls .tmp/*.md | head -n 1) && n=$(grep -c '^### Stage ' \"$f\") && for h in 'Depends on' Scope 'Tests to add' 'Existing tests permitted to change' Budget 'Action items' 'Verification gate'; do [ \"$(grep -c \"^#### $h\" \"$f\")\" -eq \"$n\" ] || exit 1; done"
+      },
+      {
+        "id": "no-tags-left",
+        "type": "command",
+        "run": "ls .tmp/*.md >/dev/null && ! grep -q '{{' .tmp/*.md"
+      },
+      {
+        "id": "workspace-unchanged",
+        "type": "command",
+        "run": "export LC_ALL=C && l() { ls -A -I __pycache__ \"$@\" | tr '\\n' ' '; } && [ \"$(l)\" = '.tmp AGENTS.md ledger tests tickets ' ] && [ \"$(l ledger)\" = '__init__.py cli.py store.py ' ] && [ \"$(l tests)\" = '__init__.py test_cli.py test_store.py ' ] && [ \"$(l tickets)\" = '12-export.md ' ]"
+      },
+      {
+        "id": "plan-is-literal",
+        "type": "judge",
+        "question": "Look at the plan under .tmp/ (a .md file), and compare it with AGENTS.md, tickets/12-export.md, and the code. Answer yes only when the plan: (1) gives `python3 -m unittest discover -s tests` as a verification command, and every other command is that command narrowed to a subset of tests, a read-only git command, or labeled (unconfirmed); (2) has no stage whose Scope lists more than 3 files or whose Tests to add lists more than 3 tests; (3) gives, for each test under Tests to add, a literal expected artifact under Behavior specification, such as the exact CSV text for given entries; (4) marks ledger/csv_export.py and ledger/json_export.py as (new) and ledger/cli.py as (modified); (5) lists test_export_not_implemented in tests/test_cli.py under Existing tests permitted to change in the stage that changes the export command, with exit 2 as its new expected value, because the ticket makes `ledger export` with a missing argument exit 2 and that test expects exit 1."
+      }
+    ]
+  }
+]
