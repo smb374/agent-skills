@@ -35,7 +35,7 @@ Each axis sets a rule for the brief:
 1. Pick the template.
    - Fork session or new session: `<skill>/assets/session.md`.
    - Subagent: the template that the user or the flow names. When nobody names one, ask the user.
-2. Pick a name for the brief, for example `handoff-<topic>`. Write both files to the temporary directory of the OS: `$TMPDIR`, else `/tmp`, or `%TEMP%` on Windows. Do not write them to the workspace.
+2. Pick a name for the brief, for example `handoff-<topic>`. Write both files to the temporary directory of the OS, not to the workspace. Get its path `<tmp>` with `python3 -c "import tempfile; print(tempfile.gettempdir())"`. This command reads `TMPDIR`, `TEMP`, and `TMP`, so do not pick a directory yourself.
 3. Run `python3 <skill>/scripts/fill.py --fields <template> <tmp>/<name>.values.json`. It writes a values file with each key set to `null`. It prints each key with its type and a hint.
 4. Replace each `null` in the values file:
    - `string`: a non-empty string. You can use Markdown.
