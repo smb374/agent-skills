@@ -24,7 +24,17 @@ with open(os.environ["FAKE_PI_LOG"], "a") as f:
     agent_dir = os.environ.get("PI_CODING_AGENT_DIR")
     settings = os.path.join(agent_dir, "settings.json")
     settings = open(settings).read() if os.path.isfile(settings) else None
-    f.write(json.dumps({"args": args, "agent_dir": agent_dir, "settings": settings}) + "\n")
+    skill = args[args.index("--skill") + 1] if "--skill" in args else None
+    record = {
+        "args": args,
+        "agent_dir": agent_dir,
+        "settings": settings,
+        "cwd": os.getcwd(),
+        "tmpdir": os.environ.get("TMPDIR"),
+        "tmpdir_is_dir": os.path.isdir(os.environ.get("TMPDIR", "")),
+        "skill_files": sorted(os.listdir(skill)) if skill else None,
+    }
+    f.write(json.dumps(record) + "\n")
 if os.environ.get("FAKE_PI_FAIL"):
     print("boom", file=sys.stderr)
     sys.exit(3)
@@ -73,6 +83,8 @@ class EvalRunTest(unittest.TestCase):
         self.tmp = Path(tmp.name)
         self.root = self.tmp / "repo"
         (self.root / "skills" / "demo").mkdir(parents=True)
+        (self.root / "skills" / "demo" / "SKILL.md").write_text("demo")
+        shutil.copy(ROOT / "install.sh", self.root / "install.sh")
         fixture = self.root / "evals" / "demo" / "fixtures" / "one"
         fixture.mkdir(parents=True)
         (fixture / "seed.txt").write_text("seed\n")
@@ -164,11 +176,16 @@ class EvalRunTest(unittest.TestCase):
             self.assertEqual(args[args.index("--model") + 1], "fake/model")
             self.assertNotIn(str(Path.home()), call["agent_dir"])
             self.assertEqual(call["settings"], PI_SETTINGS)
-        skill_args = [c["args"] for c in agent_calls if "--skill" in c["args"]]
-        self.assertEqual(
-            skill_args[0][skill_args[0].index("--skill") + 1],
-            str(self.root / "skills" / "demo"),
-        )
+        (skill_call,) = [c for c in agent_calls if "--skill" in c["args"]]
+        # The skill arm loads the installed copy, not the repo tree.
+        skill_dir = Path(skill_call["args"][skill_call["args"].index("--skill") + 1])
+        self.assertEqual(skill_dir.parts[-2:], ("skills", "demo"))
+        self.assertFalse(skill_dir.is_relative_to(self.root))
+        self.assertEqual(skill_call["skill_files"], ["SKILL.md"])
+        # Each run gets its own TMPDIR inside its workdir, so checks can read it.
+        for call in agent_calls:
+            self.assertEqual(call["tmpdir"], str(Path(call["cwd"]) / ".tmp"))
+            self.assertTrue(call["tmpdir_is_dir"])
         # Both arms drop discovered skills, so the user's skills cannot leak in.
         self.assertTrue(all("--no-skills" in c["args"] for c in agent_calls))
         # The skill arm forces the load; the baseline prompt stays plain.
@@ -246,6 +263,13 @@ class EvalRunTest(unittest.TestCase):
         code, out, _ = self.main("--runs", "1")
         self.assertEqual(code, 1)
         self.assertIn("pi exited 3: boom", out)
+
+    def test_install_failure_exits_1(self):
+        (self.root / "install.sh").write_text("#!/bin/sh\necho broken >&2\nexit 4\n")
+        code, _, err = self.main("--runs", "1")
+        self.assertEqual(code, 1)
+        self.assertIn("error: install.sh exited 4: broken", err)
+        self.assertFalse(self.log.exists())
 
     def test_missing_model_exits_2(self):
         os.environ["EVAL_MODEL"] = ""

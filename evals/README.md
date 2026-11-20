@@ -15,9 +15,11 @@ The command exits 0 when the suite ran, 1 when a pi call failed, and 2 when a se
 
 ## What one run does
 
-1. Copy the fixture to a temp directory outside the repo.
+Before the first run, the runner installs the skills of the repo into a temp directory with `install.sh --src . --no-vendor`. The skill arm loads that installed copy, because the install adds files, such as `scripts/fill.py`. When the install fails, the command exits 1.
+
+1. Copy the fixture to a temp directory outside the repo. Create `.tmp/` in it, and set `TMPDIR` to that directory, so the checks can read the files that the agent writes to `$TMPDIR`.
 2. Set `PI_CODING_AGENT_DIR` to a temp copy of `evals/pi-agent/`, so no user skill, instructions file, extension, or setting applies. Its `settings.json` pins the agent thinking level (`medium`). Judge calls use `--thinking low`.
-3. Run `pi --mode json --no-session -nc -ne --no-mcp --no-skills --model $EVAL_MODEL --tools read,edit,write,grep,find,ls`. Arm `skill` adds `--skill skills/<skill>` and puts `/skill:<skill>` before the prompt, so the skill always loads and the arm measures the skill body, not its trigger. `--no-skills` in both arms drops skills that pi discovers in `~/.agents/skills/`, which `PI_CODING_AGENT_DIR` does not cover. The summary row `skill loaded` counts runs whose events show the skill body or a read of its `SKILL.md`.
+3. Run `pi --mode json --no-session -nc -ne --no-mcp --no-skills --model $EVAL_MODEL --tools read,edit,write,grep,find,ls`. Arm `skill` adds `--skill <install dir>/skills/<skill>` and puts `/skill:<skill>` before the prompt, so the skill always loads and the arm measures the skill body, not its trigger. `--no-skills` in both arms drops skills that pi discovers in `~/.agents/skills/`, which `PI_CODING_AGENT_DIR` does not cover. The summary row `skill loaded` counts runs whose events show the skill body or a read of its `SKILL.md`.
 4. Apply each check to the temp directory.
 5. Save `events.jsonl` and the final `workdir/` under `evals/results/` (gitignored).
 

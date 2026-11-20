@@ -5,20 +5,28 @@ See [docs/catalog.md](docs/catalog.md) for the planned skills, and [CONTRIBUTING
 
 ## Install
 
-Run `./install.sh`. It needs a POSIX shell, and Node.js for the vendor skills. It does two things:
+Install from the `main` branch with one line:
 
-1. It links each skill in `skills/` into `~/.agents/skills/`.
+```sh
+curl -fsSL https://raw.githubusercontent.com/smb374/agent-skills/main/install.sh | sh
+```
+
+Or run `./install.sh --src .` in a clone. The script needs a POSIX shell, curl or wget (when you pass no `--src`), and Node.js for the vendor skills. It does two things:
+
+1. It copies each skill in `skills/` into `~/.agents/skills/`. With no `--src`, it downloads the `main` tarball of this repo and copies from that.
 2. It adds the upstream skills in `vendor.txt` with `npx skills add --global`.
 
 | Flag | Action |
 | --- | --- |
-| `--link` | Links the skills. This is the default. |
-| `--copy` | Copies the skills instead of linking them. |
+| `--src DIR` | Copies the skills, and reads `vendor.txt`, from `DIR`. The default is the download of `main`. |
 | `--dir DIR` | Puts the skills of this repo in `DIR`. The default is `~/.agents/skills`. |
 | `--agent AGENT` | Sets the agent for `npx skills`. The default is `pi`. `npx skills` selects the directory of that agent, not `DIR`. |
 | `--no-vendor` | Does not add the vendor skills. |
+| `--force` | Deletes a target that exists, and copies again. The vendor step does not change. |
 
-The script does not replace a target that exists. It prints `skip:` with the path, and exits 1 at the end. A link that already points to this repo is not a skip.
+The script does not replace a target that exists. It prints `skip:` with the path, and exits 1 at the end. Any other flag exits 2 with the usage line.
+
+The `codebase-memory-mcp` installer can also write a skill named `codebase-memory` to `~/.agents/skills/`. When that skill exists, this script skips it. To install this copy over it, use `--force`.
 
 ## Devshell
 
@@ -31,7 +39,6 @@ The recipes need the tools of the devshell. Enter the devshell with `direnv allo
 | `just fmt` | Formats the Python files with ruff and `flake.nix` with nixfmt. |
 | `just check` | Runs the lint, the format check, the tests, and the validator on every skill. |
 | `just test` | Runs the unit tests of the validator and of `install.sh`. |
-| `just install [flags]` | Runs `./install.sh --copy` with the flags. |
-| `just link [flags]` | Runs `./install.sh --link` with the flags. |
+| `just install [flags]` | Runs `./install.sh --src .` with the flags. |
 
 `just check` also runs shellcheck on `install.sh`, and fails when a skill contains a banned string. See [CONTRIBUTING.md](CONTRIBUTING.md).

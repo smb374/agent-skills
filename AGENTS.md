@@ -3,7 +3,7 @@
 - Format: just fmt
 - Test: just test
 - Check (lint, format, test, skill validation): just check
-- Install the skills: just install (copy) or just link (symlink)
+- Install the skills: just install
 - Eval one skill (costs money): just eval <skill>
 
 ## Agent skills
