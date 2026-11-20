@@ -13,16 +13,20 @@ fmt:
     ruff format .
     nixfmt flake.nix
 
-# Run the unit tests.
-test:
-    python3 -m unittest discover -s tests
+# Run the unit tests, or only those whose name matches `name`.
+test name="":
+    python3 -m unittest discover -s tests {{ if name == "" { "" } else { "-k " + name } }}
+
+# Lint the Python files and shell scripts. These are the static checks; there is no type checker.
+typecheck:
+    ruff check .
+    shellcheck install.sh
 
 # Lint, check the format, test, and validate every skill.
 check:
-    ruff check .
+    just typecheck
     ruff format --check .
     nixfmt --check flake.nix
-    shellcheck install.sh
     just test
     for d in skills/*/; do python3 skills/skill-writer/scripts/quick_validate.py "$d" || exit 1; done
     ! grep -rnF --exclude=portability.md --exclude=PROVENANCE.md -e 'Skill tool' -e 'setup-matt-pocock-skills' -e '${CLAUDE_SKILL_DIR}' -e '$ARGUMENTS' skills/
