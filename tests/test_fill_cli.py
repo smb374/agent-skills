@@ -58,6 +58,19 @@ class FillCliTest(unittest.TestCase):
     def test_render_ok(self):
         self.assert_rendered(self.render("Hi {{name}}", {"name": "Ann"}), "Hi Ann")
 
+    def test_runs_without_interpreter(self):
+        # The skills run fill.py directly, so that one permission rule can allow it.
+        args = (
+            FILL,
+            self.template("Hi {{name}}"),
+            self.values({"name": "Ann"}),
+            self.out,
+        )
+        result = subprocess.run(
+            list(map(str, args)), check=False, capture_output=True, text=True
+        )
+        self.assert_rendered(result, "Hi Ann")
+
     def test_escape_default(self):
         self.assert_rendered(self.render("{{v}}", {"v": "<b>&"}), "&lt;b&gt;&amp;")
 

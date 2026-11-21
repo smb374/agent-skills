@@ -217,6 +217,7 @@ class InstallTest(unittest.TestCase):
             (tree / "skills" / name / "SKILL.md").write_text(name)
         (tree / "fill").mkdir()
         (tree / "fill" / "fill.py").write_text("# fill\n")
+        (tree / "fill" / "fill.py").chmod(0o755)
         return tree
 
     def test_listed_skill_gets_fill(self):
@@ -224,6 +225,7 @@ class InstallTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         fill = self.dir / "handoff" / "scripts" / "fill.py"
         self.assertEqual(fill.read_text(), "# fill\n")
+        self.assertTrue(os.access(fill, os.X_OK))
         self.assertFalse((self.dir / "other" / "scripts").exists())
 
     def test_skipped_skill_gets_no_fill(self):

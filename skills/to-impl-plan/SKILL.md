@@ -57,10 +57,10 @@ Completion criterion: the user or the flow confirmed the stages, the seams, and 
 ### 4. Write the plan
 
 1. Name the plan `plan-<ticket-id>`. `<ticket-id>` is the ID of the tracker: the local `NN` or the issue number. Write all files to the temporary directory of the OS, not to the workspace. Get its path `<tmp>` with `python3 -c "import tempfile; print(tempfile.gettempdir())"`. This command reads `TMPDIR`, `TEMP`, and `TMP`, so do not pick a directory yourself.
-2. Run `python3 <skill>/scripts/fill.py --fields <skill>/assets/plan.md <tmp>/<name>.values.json`. It writes a values file with each key set to `null`. It prints each key with its type and a hint.
+2. Run `<skill>/scripts/fill.py --fields <skill>/assets/plan.md <tmp>/<name>.values.json`. It writes a values file with each key set to `null`. It prints each key with its type and a hint.
 3. Replace each `null` in the values file. Use a non-empty string for a `string`, and an array of non-empty strings for a `list`. Use `[]` only when the template prints `None` for an empty list.
 4. Write each item of `stages` in the shape of **Stage shape** below.
-5. Run `python3 <skill>/scripts/fill.py <skill>/assets/plan.md <tmp>/<name>.values.json <tmp>/<name>.md`.
+5. Run `<skill>/scripts/fill.py <skill>/assets/plan.md <tmp>/<name>.values.json <tmp>/<name>.md`.
 6. When `fill` exits 1, it writes nothing and lists each problem. Fix each problem in the values file, then do step 5 again. When the plan exists from an earlier run, delete it, then do step 5 again.
 
 When `<skill>/scripts/fill.py` does not exist, the skill was not installed with its install script. Tell the user, and stop.

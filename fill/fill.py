@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """A small mustache engine: `render(template, data, partials, escape)`.
 
 Supports the six required files of mustache/spec v1.4.3 (comments, delimiters,
