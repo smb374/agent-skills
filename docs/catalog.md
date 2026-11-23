@@ -32,7 +32,7 @@ This file is the list of skills that this repo installs or plans to install. It 
 | 1 Intake | Interview entry points | `grill-me`, `grill-with-docs` | flow | mattpocock/skills | vendor |
 | 1 Intake | Glossary and ADRs | `domain-modeling` | knowledge | mattpocock/skills | vendor |
 | 1 Intake | Spec, then tickets | `to-spec`, `to-tickets` | flow | mattpocock/skills. Point them at `setup-project`. | done |
-| 2 Tickets | Scout, brief, worker, verify, review, commit | `implement-flow`, `implement-spec-flow`, `plan-ticket-impl` | flow | Pi config repo. `plan-ticket-impl` wraps `to-impl-plan` with the plan review and the Pi Builder contract. | pi-config |
+| 2 Tickets | Scout, brief, worker, verify, review, commit | `implement-flow`, `plan-ticket-impl` | flow | Pi config repo. `implement-flow` runs one ticket or a whole spec. `plan-ticket-impl` wraps `to-impl-plan` with the plan review and the Pi Builder contract. | pi-config |
 | 2 Tickets | Plan in builder stages, for a ticket too big for one builder run or a run that went wrong | `to-impl-plan` | knowledge, started by the user or a flow | Own, ported from the Pi `plan-ticket-impl`. Ships the plan template, the contract partial, and `fill`. | done |
 | 2 Tickets | Code writing | `tdd`, `diagnosing-bugs`, `codebase-design` | knowledge | mattpocock/skills | vendor |
 | 3 PR | Find the target issue and its sub-issues. Else ask the user, or use the branch commits | A step in `pr-writer`, with `gh` commands | — | Own | done |
