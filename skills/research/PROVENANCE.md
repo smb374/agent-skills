@@ -20,6 +20,8 @@
 | --- | --- | --- |
 | fallback: research in this session when the harness cannot start a background agent | `docs/catalog.md` | adopted |
 | `agents/openai.yaml` | Codex UI metadata only. The skill does not need it | rejected |
+| save order: the place the user names, then the repo convention, then `docs/research/` | the user often writes reports outside the repo | adopted |
+| file name `YYYY-MM-DD-<topic-slug>.md`, with the retrieval date | a reader must see the age of a report from its name | adopted |
 
 ## Coverage and gaps
 
@@ -32,3 +34,4 @@
 - Remove `agents/openai.yaml`.
 - Add the fallback for a harness with no background agent.
 - Change "Its job" to "The job", because the fallback gives the job to the main agent.
+- Replace "somewhere sensible" with a fixed save order and a dated file name.
