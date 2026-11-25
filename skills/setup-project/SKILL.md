@@ -49,6 +49,7 @@ Lead each section with the recommended answer so the user can accept it in a wor
 Default posture: these skills were designed for GitHub. If a `git remote` points at GitHub, propose that. Otherwise (or if the user prefers), offer:
 
 - **GitHub**: issues live in the repo's GitHub Issues (uses the `gh` CLI)
+- **Local files**: issues live as Markdown files under `.scratch/`, which is not tracked by git (no remote needed)
 - **Other** (GitLab, Jira, Linear, etc.): ask the user to describe the workflow in one paragraph; the skill will record it as freeform prose
 
 Record the choice in `docs/agents/issue-tracker.md`. The GitHub template carries a "PRs as a request surface" flag, defaulted **off**. Leave it off and don't raise it: a user who wants external PRs in the triage queue can flip the flag in the file later.
@@ -69,6 +70,7 @@ Offer **multi-context** (a root `GLOSSARY-MAP.md` pointing to per-context `GLOSS
 
 **Section D: Commit rules and git hooks.** Do not ask about the rules. They come from [contributing.md](./contributing.md) and [pre-commit-config.yaml](./pre-commit-config.yaml). Check the preconditions:
 
+- In local mode, the issue-footer hook and the footer rule do not apply. A local ticket has no `#N`, and the hook requires `Refs|Fixes|Closes #N`. Skip them in step 4.
 - When exploration found husky, lefthook, a commitlint config, or a `core.hooksPath` value, stop this section. Tell the user what you found, and ask how to continue. `pre-commit install` refuses to run when `core.hooksPath` is set.
 - When `pre-commit` is not on the `PATH`, ask the user to install it with their tool of choice (for example nix, mise, pipx, or the system package manager). Continue when `pre-commit --version` succeeds.
 - When `CONTRIBUTING.md` already states a different commit or branch convention, show the conflict and ask which one to keep.
@@ -117,6 +119,8 @@ Each issue has one `type:*` label and a matching title prefix: `[Epic]`, `[Bug]`
 ### Commits
 
 Conventional Commits with an issue footer (`Refs: #N`, `Fixes #N`). See `CONTRIBUTING.md`.
+
+In local mode, write: "Conventional Commits. See `CONTRIBUTING.md`."
 ```
 
 Include the `### Triage labels` sub-block, and write `docs/agents/triage-labels.md`, only when `triage` is installed and Section B ran. When it isn't, both are omitted.
@@ -124,6 +128,7 @@ Include the `### Triage labels` sub-block, and write `docs/agents/triage-labels.
 **Docs files:** write them from the seed templates in this skill folder:
 
 - [issue-tracker-github.md](./issue-tracker-github.md): GitHub issue tracker
+- [issue-tracker-local.md](./issue-tracker-local.md): local files tracker
 - [issue-types.md](./issue-types.md): issue types, title prefixes, and hierarchy
 - [triage-labels.md](./triage-labels.md): label mapping (only if `triage` is installed)
 - [domain.md](./domain.md): domain doc consumer rules + layout
@@ -154,9 +159,11 @@ For "other" issue trackers, write `docs/agents/issue-tracker.md` from scratch us
 gh label create <label> --color <color> --description "<description>"
 ```
 
-**CONTRIBUTING.md:** add the sections of [contributing.md](./contributing.md). When `CONTRIBUTING.md` exists, update its matching sections in place, and keep the other sections.
+**CONTRIBUTING.md:** add the sections of [contributing.md](./contributing.md). When `CONTRIBUTING.md` exists, update its matching sections in place, and keep the other sections. In local mode, leave out the issue footer paragraph, the list of footers, and the sentence about commits with no footer.
 
-**pre-commit:** copy the hooks of [pre-commit-config.yaml](./pre-commit-config.yaml) into `.pre-commit-config.yaml`. When the file exists, add the three hooks and the `commit-msg` hook type, and keep the other hooks. Then run:
+**.gitignore (local mode only):** add `.scratch/` to `.gitignore`. Create the file if it does not exist.
+
+**pre-commit:** copy the hooks of [pre-commit-config.yaml](./pre-commit-config.yaml) into `.pre-commit-config.yaml`. In local mode, leave out the `issue-footer` hook. When the file exists, add the hooks and the `commit-msg` hook type, and keep the other hooks. Then run:
 
 ```bash
 pre-commit install

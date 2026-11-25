@@ -25,8 +25,10 @@
 | Decision | Evidence | Status |
 | --- | --- | --- |
 | fork `setup-matt-pocock-skills` and name it `setup-project` | the vendored skills read its `docs/agents/` files. The user chose the fork and the name | adopted |
-| trackers: GitHub and "other" only | the user's choice. "Other" covers GitLab by description | adopted |
-| `issue-tracker-gitlab.md`, `issue-tracker-local.md`, `agents/openai.yaml` | not used, or Codex UI metadata only | rejected |
+| trackers: GitHub, local files, and "other" | #13. "Other" covers GitLab by description. Local files was first rejected and is now added | adopted |
+| `issue-tracker-gitlab.md`, `agents/openai.yaml` | not used, or Codex UI metadata only | rejected |
+| local mode: add `.scratch/` to `.gitignore` | #13 | adopted |
+| local mode: skip the issue-footer hook and the footer rule in `CONTRIBUTING.md` | #13. A local ticket has no `#N`, and the hook requires `Refs\|Fixes\|Closes #N` | adopted |
 | create the triage and `wayfinder:*` labels with `gh label create` | upstream docs: `gh issue create --label <missing>` fails | adopted |
 | always write `AGENTS.md`. Offer to move `CLAUDE.md` into it, with `@AGENTS.md` as the only line of `CLAUDE.md` | upstream docs: the block can land in a file that the harness does not read. The user's choice | adopted |
 | a new `AGENTS.md` holds the found commands and the `## Agent skills` block only | the user's choice | adopted |
@@ -53,7 +55,8 @@
 ## Local changes
 
 - Rename to `setup-project`, add `license: MIT`, and rewrite the description.
-- Keep only the GitHub and "other" trackers. Remove the GitLab and local templates, and `agents/openai.yaml`.
+- Keep the GitHub, local files, and "other" trackers. Remove the GitLab template and `agents/openai.yaml`.
+- Add the `issue-tracker-local.md` template. In local mode, add `.scratch/` to `.gitignore`, and skip the issue-footer hook and the footer rule.
 - Explore the project commands, `CONTRIBUTING.md`, the git hook managers, and `pre-commit`.
 - Add Section D (commit rules and git hooks) with its preconditions.
 - Always write `AGENTS.md`. Add a `### Commits` sub-block to `## Agent skills`.
