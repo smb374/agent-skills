@@ -1,0 +1,49 @@
+[
+  {
+    "id": "total",
+    "fixture": "fixtures/total",
+    "prompt": "Review the change in change.patch. It implements tickets/21-total.md. The files in this directory hold the code after the change. Write the review to review.md, and change no other file.",
+    "bash": false,
+    "checks": [
+      {
+        "id": "review-written",
+        "type": "file_exists",
+        "path": "review.md"
+      },
+      {
+        "id": "three-axes",
+        "type": "command",
+        "run": "for h in Spec Standards Correctness; do grep -qiE \"^#+ .*$h\" review.md || exit 1; done"
+      },
+      {
+        "id": "tree-unchanged",
+        "type": "command",
+        "run": "export LC_ALL=C && [ \"$(ls -RA -I __pycache__ -I .tmp -I review.md | tr '\\n' ' ')\" = '.: AGENTS.md CONTRIBUTING.md change.patch ledger tests tickets  ./ledger: __init__.py cli.py money.py store.py  ./tests: __init__.py test_cli.py test_money.py  ./tickets: 21-total.md ' ] && [ \"$(cksum AGENTS.md CONTRIBUTING.md change.patch ledger/__init__.py ledger/cli.py ledger/money.py ledger/store.py tests/__init__.py tests/test_cli.py tests/test_money.py tickets/21-total.md | cut -d ' ' -f 1 | tr '\\n' ' ')\" = '776521558 2692284122 1683925001 4294967295 2913999560 3225561786 1255734340 4294967295 3230344263 4088647163 2191080555 ' ]"
+      },
+      {
+        "id": "negative-total",
+        "type": "judge",
+        "paths": ["review.md"],
+        "question": "Does the correctness part of review.md (not only the spec part) report that `ledger total` prints a wrong total when the sum of the amounts is negative (for example -150 cents prints -2.50, not -1.50), because ledger/cli.py formats the cents with floor division and modulo?"
+      },
+      {
+        "id": "missing-argument",
+        "type": "judge",
+        "paths": ["review.md"],
+        "question": "Does the spec part of review.md report, as a missing or wrong acceptance criterion of ticket 21, that `ledger total` with no file argument does not print the usage line and exit 2, because `args[1]` raises an IndexError?"
+      },
+      {
+        "id": "format-rule",
+        "type": "judge",
+        "paths": ["review.md"],
+        "question": "Does the standards part of review.md report that ledger/cli.py formats the amount by hand and does not use `ledger.money.format_cents`, which CONTRIBUTING.md requires?"
+      },
+      {
+        "id": "finding-fields",
+        "type": "judge",
+        "paths": ["review.md"],
+        "question": "Does every finding in review.md give a severity, a file:line location, and the smallest fix?"
+      }
+    ]
+  }
+]

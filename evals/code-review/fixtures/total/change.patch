@@ -1,0 +1,46 @@
+diff --git a/ledger/cli.py b/ledger/cli.py
+index 03b3714..84eae01 100644
+--- a/ledger/cli.py
++++ b/ledger/cli.py
+@@ -1,7 +1,13 @@
+ import sys
+ 
++from ledger.store import load
++
+ 
+ def main(argv=None):
+     args = sys.argv[1:] if argv is None else argv
+-    print("usage: ledger <command>")
++    if args[:1] == ["total"]:
++        cents = sum(e.amount for e in load(args[1]))
++        print(f"total: {cents // 100}.{cents % 100:02d}")
++        return 0
++    print("usage: ledger total <ledger.tsv>")
+     return 2
+diff --git a/tests/test_cli.py b/tests/test_cli.py
+index 54fd875..b4ae37f 100644
+--- a/tests/test_cli.py
++++ b/tests/test_cli.py
+@@ -1,4 +1,8 @@
++import contextlib
++import io
++import tempfile
+ import unittest
++from pathlib import Path
+ 
+ from ledger.cli import main
+ 
+@@ -6,3 +10,13 @@ from ledger.cli import main
+ class CliTest(unittest.TestCase):
+     def test_usage(self):
+         self.assertEqual(main([]), 2)
++
++    def test_total(self):
++        with tempfile.TemporaryDirectory() as d:
++            path = Path(d) / "l.tsv"
++            path.write_text("2026-01-02\tBakery\t1250\n2026-01-03\tCafe\t300\n")
++            out = io.StringIO()
++            with contextlib.redirect_stdout(out):
++                code = main(["total", str(path)])
++            self.assertEqual(code, 0)
++            self.assertEqual(out.getvalue(), "total: 15.50\n")

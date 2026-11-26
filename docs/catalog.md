@@ -38,7 +38,8 @@ This file is the list of skills that this repo installs or plans to install. It 
 | 3 PR | Find the target issue and its sub-issues. Else ask the user, or use the branch commits | A step in `pr-writer`, with `gh` commands | — | Own | done |
 | 3 PR | PR body | `pr-writer` | knowledge, started by the user or another flow | getsentry/skills (Apache-2.0). Change it to Conventional Commits titles. | done |
 | 3 PR | PR operations | No skill. The model already knows `gh`. | — | — | none |
-| 3 PR | PR review | `pr-review` | flow | Pi config repo | pi-config |
+| 3 PR | PR review | `pr-review` | flow | Pi config repo. It runs the reviewers with the `code-review` standard. | pi-config |
+| 3 PR | Review standard, also used for the ticket review in stage 2: the spec, standards, and correctness axes, the flag bar, the finding fields, the report shape, and a manual review | `code-review` | knowledge | Derived from mattpocock/skills `code-review` (MIT) and the Pi reviewer template, with ideas from the Codex review prompt, Anthropic Code Review, and obra/superpowers. `pr-review` and `implement-flow` use it. | done |
 | 4 Issues | Triage, then tickets, then stage 2 | `triage`, then `to-tickets` | flow | mattpocock/skills. Point `triage` at `setup-project`. Load skills by name, not with the Skill tool. | done |
 | Meta | Skill authoring | `skill-writer` | knowledge | getsentry/skills (Apache-2.0), with the public supplement | done |
 | Meta | AGENTS.md, CLAUDE.md, disclosed docs, agent briefs, system prompts, tool descriptions, error and hook messages | `writing-agent-docs` | knowledge | mattpocock/skills `writing-for-agents` (MIT), rewritten and extended with vendor research. `skill-writer` sends these requests to it. | done |
@@ -57,10 +58,9 @@ This file is the list of skills that this repo installs or plans to install. It 
 
 ## Not kept
 
-ask-matt, code-review, feature-plan, find-skills, handoff, implement, implement-spec, improve-codebase-architecture, pr, prototype, resolving-merge-conflicts, retro, to-questionnaire, typesafe-ai, wizard, writing-for-agents.
+ask-matt, feature-plan, find-skills, handoff, implement, implement-spec, improve-codebase-architecture, pr, prototype, resolving-merge-conflicts, retro, to-questionnaire, typesafe-ai, wizard, writing-for-agents.
 
 - `feature-plan` duplicates `to-spec` and `plan-ticket-impl`.
-- `code-review` duplicates the review in `pr-review` and `implement-flow`.
 - `writing-for-agents` splits into `skill-writer` (skills) and `writing-agent-docs` (other agent documents).
 - The Pi flows and agents replace `implement` and `implement-spec`.
 - The own `handoff` replaces upstream `handoff`.

@@ -1,6 +1,6 @@
 ---
 name: to-impl-plan
-description: Turns one ticket into an implementation plan for builder runs, with cited behavior, named tests, a file scope, and a budget in each stage. A plan has one or more stages, and each stage fits one builder run. Use when the user asks for an implementation plan, when a ticket is too big for one builder session, or when a builder went wrong on a ticket. To split a spec into tickets, use to-tickets. To hand off a session, use handoff.
+description: Turns one ticket into an implementation plan for builder runs, with cited behavior, named tests, a file scope, and a budget in each stage. A plan has one or more stages, and each stage fits one builder run. It also holds the checks to review a plan that it wrote. Use when the user asks for an implementation plan or a plan review, when a ticket is too big for one builder session, or when a builder went wrong on a ticket. To split a spec into tickets, use to-tickets. To hand off a session, use handoff.
 compatibility: scripts/fill.py needs Python 3.10 or later. The install script of smb374/agent-skills adds it.
 ---
 
@@ -70,6 +70,10 @@ Completion criterion: `fill` exited 0, every stage has all subsections of **Stag
 ### 5. Give the path
 
 Give the path of the plan to the user or to the flow. Tell the user to start each builder run in a fresh context with the plan path and one stage number, in stage order.
+
+## Review a plan
+
+To review a plan that this skill wrote, read `references/plan-review.md`.
 
 ## Stage shape
 

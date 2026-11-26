@@ -44,3 +44,4 @@
 - Remove step 5 (the plan review) and the reference to `implement-flow`.
 - Replace `/skill:setup-project` and `/skill:to-tickets` with `/setup-project` and `/to-tickets`.
 - Remove `disable-model-invocation`. Add the start rule of `handoff`.
+- Add `references/plan-review.md`: the plan axis checks, moved from the Pi reviewer template (#14). The report uses the shape of the `code-review` skill.
