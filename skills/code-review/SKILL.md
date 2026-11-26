@@ -31,7 +31,7 @@ This skill is the review standard. A reviewer reviews one **target** (a diff or 
 A finding passes the bar when all of these are true:
 
 1. The target caused the issue, or made it reachable. Do not report an issue that existed before the change and that the change does not make reachable.
-2. The issue is discrete and actionable: one issue, with one fix.
+2. The issue is discrete and actionable: one issue, with one fix. When you cannot name a fix that the change needs, do not report the issue.
 3. The impact is provable. Name the affected code with `file:line`, or give a probe. "This may break X" is not proof.
 4. On the standards and correctness axes, the issue is not a behavior that a criterion or the commit message asks for.
 5. The fix needs no more rigor than the rest of the codebase has.
@@ -108,7 +108,7 @@ Give each finding these fields:
 | location | `file:line` in the target |
 | evidence | the quoted line or output, tied to the location |
 | source | the Check cell of its row |
-| fix | the smallest fix |
+| fix | the smallest concrete change to the code or the tests. Not a question for the author |
 | guard | `blocker` and `fix` only. The cheapest check that would have caught the issue: `test`, `lint rule`, `type`, `api`, or `none`, then the concrete check in one line |
 | probe | see **Probes** |
 
@@ -129,7 +129,7 @@ A probe is one step list that confirms or refutes a finding. The reviewer writes
 
 ### Same location on two axes
 
-The spec and correctness axes can report one issue at one location: a defect that also breaks an AC. The aggregator keeps the spec finding, adds `also: COR-n` to it, and drops the correctness finding. In the correctness Checks row, the aggregator replaces `COR-n` with the `SPEC-n` ID. The spec finding can be Big, so it wins. Count the findings after this step.
+The spec and correctness axes can report one issue at one location: a defect that also breaks an AC. The aggregator keeps the spec finding, adds `also: COR-n` to it, and removes the correctness finding from the Findings list. In the correctness Checks row, the aggregator replaces `COR-n` with the `SPEC-n` ID. The spec finding can be Big, so it wins. Count the findings after this step.
 
 ## Axis report
 

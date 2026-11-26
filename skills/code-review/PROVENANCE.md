@@ -41,7 +41,7 @@
 
 | Dimension | Status | Next retrieval action |
 | --- | --- | --- |
-| baseline runs with and without the skill | partial: `evals/code-review/` has a case, not run yet | run `just eval code-review` |
+| baseline runs with and without the skill | done: `just eval code-review --runs 2` on 2026-11-26 with `claude-haiku-5-5`. Skill 14/14, baseline 8/14. Both arms found the three planted faults. The skill adds the axis split, `file:line` locations, and the finding fields. Two earlier runs found notes with no fix and a deduped finding left as a stub. The flag bar item 2, the `fix` field, and the dedup text fix them | run again after a change to the body |
 | trigger check with near-miss queries | missing | run the trigger loop of skill-writer when a trigger failure shows |
 | source of the Anthropic `/code-review` command | missing: the fetch returned no content | read `anthropics/claude-code` `plugins/code-review/commands/code-review.md` |
 
@@ -52,3 +52,4 @@
 - Add the correctness axis, the flag bar, the base-ref rule, the Declined to judge list, the Big definition, and the dedup rule.
 - Add three ponytail smells to the Fowler baseline.
 - Remove the word limits and the foreground subagent rule of the upstream text.
+- After the eval: a finding with no fix fails the flag bar, a fix is a concrete change and not a question, and the dedup removes the correctness finding from the Findings list.
